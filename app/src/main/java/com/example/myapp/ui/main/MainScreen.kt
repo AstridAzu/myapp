@@ -159,7 +159,7 @@ fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainVie
                     items(categorias) { categoria ->
                         CategoryCard(categoria = categoria, onClick = {
                             when (categoria.titulo) {
-                                "Clases" -> navController.navigate("admin_manage_class")
+                                "Clases" -> navController.navigate("admin_manage_class/$userId")
                                 "Mis Clases" -> navController.navigate("my_classes/$userId")
                             }
                         })

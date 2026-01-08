@@ -17,8 +17,14 @@ class AdminClassViewModel(application: Application) : AndroidViewModel(applicati
     private val _classes = MutableStateFlow<List<GymClass>>(emptyList())
     val classes: StateFlow<List<GymClass>> = _classes.asStateFlow()
 
+    private var currentUserId: Int = -1
+
     init {
         loadClasses()
+    }
+
+    fun setCurrentUserId(userId: Int) {
+        currentUserId = userId
     }
 
     private fun loadClasses() {
@@ -36,7 +42,8 @@ class AdminClassViewModel(application: Application) : AndroidViewModel(applicati
                     GymClass(
                         name = name,
                         description = description,
-                        schedule = schedule
+                        schedule = schedule,
+                        creatorId = currentUserId
                     )
                 )
             } else {

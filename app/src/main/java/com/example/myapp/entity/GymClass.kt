@@ -9,5 +9,6 @@ data class GymClass(
     val classId: Int = 0,
     val name: String,
     val description: String,
-    val schedule: String // Nuevo campo para el horario
+    val schedule: String,
+    val creatorId: Int = 0 // ID del usuario que creó la clase
 )

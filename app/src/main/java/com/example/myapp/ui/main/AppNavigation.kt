@@ -30,10 +30,14 @@ fun AppNavigation(initialUserId: Int) {
             MainScreen(navController, userId)
         }
         composable(
-            "admin_manage_class",
+            "admin_manage_class/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.IntType }),
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) }
-        ) { AdminManageClassScreen(navController) }
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+            AdminManageClassScreen(navController) 
+        }
         composable(
             "my_classes/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.IntType }),

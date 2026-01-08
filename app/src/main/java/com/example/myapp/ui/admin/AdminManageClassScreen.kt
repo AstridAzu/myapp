@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,17 @@ fun AdminManageClassScreen(navController: NavController, adminClassViewModel: Ad
     val classes by adminClassViewModel.classes.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var classToEdit by remember { mutableStateOf<GymClass?>(null) }
+
+    // Obtener el ID del usuario logueado desde los argumentos de navegación
+    val userId = navController.currentBackStackEntry?.arguments?.getInt("userId") ?: -1
+
+    LaunchedEffect(userId) {
+        adminClassViewModel.setCurrentUserId(userId)
+    }
+
+    // Permitimos gestionar clases con creatorId <= 0 para limpieza de datos huérfanos
+    val myClasses = classes.filter { it.creatorId == userId || it.creatorId <= 0 }
+    val otherClasses = classes.filter { it.creatorId != userId && it.creatorId > 0 }
 
     Scaffold(
         topBar = {
@@ -73,17 +85,48 @@ fun AdminManageClassScreen(navController: NavController, adminClassViewModel: Ad
         }
     ) { paddingValues ->
         LazyColumn(modifier = Modifier.padding(paddingValues).padding(8.dp)) {
-            items(classes) { gymClass ->
-                ClassItem(
-                    gymClass = gymClass, 
-                    onEdit = { cl ->
-                        classToEdit = cl
-                        showDialog = true
-                    },
-                    onDelete = { cl ->
-                        adminClassViewModel.deleteClass(cl)
-                    }
-                )
+            if (myClasses.isNotEmpty()) {
+                item {
+                    Text(
+                        "Tus Clases",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF31CAF8),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(myClasses) { gymClass ->
+                    ClassItem(
+                        gymClass = gymClass,
+                        canEdit = true,
+                        onEdit = { cl ->
+                            classToEdit = cl
+                            showDialog = true
+                        },
+                        onDelete = { cl ->
+                            adminClassViewModel.deleteClass(cl)
+                        }
+                    )
+                }
+            }
+
+            if (otherClasses.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Otras Clases",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(otherClasses) { gymClass ->
+                    ClassItem(
+                        gymClass = gymClass,
+                        canEdit = false,
+                        onEdit = {},
+                        onDelete = {}
+                    )
+                }
             }
         }
     }
@@ -101,7 +144,12 @@ fun AdminManageClassScreen(navController: NavController, adminClassViewModel: Ad
 }
 
 @Composable
-fun ClassItem(gymClass: GymClass, onEdit: (GymClass) -> Unit, onDelete: (GymClass) -> Unit) {
+fun ClassItem(
+    gymClass: GymClass, 
+    canEdit: Boolean, 
+    onEdit: (GymClass) -> Unit, 
+    onDelete: (GymClass) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -115,22 +163,25 @@ fun ClassItem(gymClass: GymClass, onEdit: (GymClass) -> Unit, onDelete: (GymClas
             Text(text = gymClass.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(text = gymClass.description, style = MaterialTheme.typography.bodyMedium)
             Text(text = "Horario: ${gymClass.schedule}", style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.align(Alignment.End),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { onEdit(gymClass) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+            
+            if (canEdit) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Editar")
-                }
-                Button(
-                    onClick = { onDelete(gymClass) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Eliminar", color = Color.White)
+                    Button(
+                        onClick = { onEdit(gymClass) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                    ) {
+                        Text("Editar", color = Color.Black)
+                    }
+                    Button(
+                        onClick = { onDelete(gymClass) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Eliminar", color = Color.White)
+                    }
                 }
             }
         }
@@ -148,9 +199,24 @@ fun EditClassDialog(gymClass: GymClass?, onDismiss: () -> Unit, onSave: (String,
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = if (gymClass == null) "Nueva Clase" else "Editar Clase", style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre de la Clase") })
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descripción") })
-                OutlinedTextField(value = schedule, onValueChange = { schedule = it }, label = { Text("Horario") })
+                OutlinedTextField(
+                    value = name, 
+                    onValueChange = { name = it }, 
+                    label = { Text("Nombre de la Clase") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description, 
+                    onValueChange = { description = it }, 
+                    label = { Text("Descripción") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = schedule, 
+                    onValueChange = { schedule = it }, 
+                    label = { Text("Horario") },
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { onSave(name, description, schedule) },

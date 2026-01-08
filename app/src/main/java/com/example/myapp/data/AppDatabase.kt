@@ -10,7 +10,7 @@ import com.example.myapp.entity.UserClassCrossRef
 
 @Database(
     entities = [User::class, GymClass::class, UserClassCrossRef::class],
-    version = 4, // Incremented version for the new schedule field
+    version = 5, // Incrementado de 4 a 5 por el campo creatorId en GymClass
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
