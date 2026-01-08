@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapp.data.database.DatabaseBuilder
 import com.example.myapp.entity.User
 import com.example.myapp.utils.PasswordUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     val registrationState: StateFlow<RegistrationState> = _registrationState.asStateFlow()
 
     fun registerUser(username: String, password: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (userDao.usernameExists(username)) {
                 _registrationState.value = RegistrationState.Error("El usuario ya existe")
                 return@launch
