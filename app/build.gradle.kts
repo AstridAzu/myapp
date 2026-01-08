@@ -80,3 +80,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)
 }
+
+// Comentario para forzar la re-sincronización de Gradle y limpiar cachés corruptas de KSP.

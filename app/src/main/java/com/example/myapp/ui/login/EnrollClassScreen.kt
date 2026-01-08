@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapp.entity.GymClass
+import com.example.myapp.viewmodel.EnrollClassViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

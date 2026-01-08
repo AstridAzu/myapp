@@ -10,26 +10,32 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GymClassDao {
 
+    // La sintaxis moderna para operaciones de modificación suspendidas
+    // es especificar el tipo de retorno, que puede ser Unit.
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertGymClass(gymClass: GymClass)
+    suspend fun insertGymClass(gymClass: GymClass): Unit
 
     @Update
-    fun updateGymClass(gymClass: GymClass)
+    suspend fun updateGymClass(gymClass: GymClass): Unit
+
+    @Delete
+    suspend fun deleteGymClass(gymClass: GymClass): Unit
 
     @Query("SELECT * FROM gym_classes")
-    fun getAllGymClasses(): List<GymClass>
+    suspend fun getAllGymClasses(): List<GymClass>
 
     @Query("SELECT * FROM gym_classes")
     fun getAllGymClassesFlow(): Flow<List<GymClass>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun enrollUserInClass(crossRef: UserClassCrossRef)
+    suspend fun enrollUserInClass(crossRef: UserClassCrossRef): Unit
 
     @Transaction
     @Query("SELECT * FROM users WHERE userId = :userId")
-    fun getUserWithClasses(userId: Int): UserWithClasses?
+    suspend fun getUserWithClasses(userId: Int): UserWithClasses?
 
     @Transaction
     @Query("SELECT * FROM gym_classes WHERE classId = :classId")
-    fun getClassWithUsers(classId: Int): ClassWithUsers?
+    suspend fun getClassWithUsers(classId: Int): ClassWithUsers?
 }

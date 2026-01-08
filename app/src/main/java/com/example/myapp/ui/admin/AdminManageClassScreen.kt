@@ -2,6 +2,7 @@ package com.example.myapp.ui.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +40,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapp.entity.GymClass
+import com.example.myapp.viewmodel.AdminClassViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,10 +74,16 @@ fun AdminManageClassScreen(navController: NavController, adminClassViewModel: Ad
     ) { paddingValues ->
         LazyColumn(modifier = Modifier.padding(paddingValues).padding(8.dp)) {
             items(classes) { gymClass ->
-                ClassItem(gymClass) { cl ->
-                    classToEdit = cl
-                    showDialog = true
-                }
+                ClassItem(
+                    gymClass = gymClass, 
+                    onEdit = { cl ->
+                        classToEdit = cl
+                        showDialog = true
+                    },
+                    onDelete = { cl ->
+                        adminClassViewModel.deleteClass(cl)
+                    }
+                )
             }
         }
     }
@@ -93,7 +101,7 @@ fun AdminManageClassScreen(navController: NavController, adminClassViewModel: Ad
 }
 
 @Composable
-fun ClassItem(gymClass: GymClass, onEdit: (GymClass) -> Unit) {
+fun ClassItem(gymClass: GymClass, onEdit: (GymClass) -> Unit, onDelete: (GymClass) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,12 +116,22 @@ fun ClassItem(gymClass: GymClass, onEdit: (GymClass) -> Unit) {
             Text(text = gymClass.description, style = MaterialTheme.typography.bodyMedium)
             Text(text = "Horario: ${gymClass.schedule}", style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { onEdit(gymClass) },
+            Row(
                 modifier = Modifier.align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Editar")
+                Button(
+                    onClick = { onEdit(gymClass) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                ) {
+                    Text("Editar")
+                }
+                Button(
+                    onClick = { onDelete(gymClass) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
             }
         }
     }

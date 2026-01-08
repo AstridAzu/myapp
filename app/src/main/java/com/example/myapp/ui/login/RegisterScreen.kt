@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.myapp.viewmodel.RegisterViewModel
 
 private data class RegisterFormState(
     val username: String = "",

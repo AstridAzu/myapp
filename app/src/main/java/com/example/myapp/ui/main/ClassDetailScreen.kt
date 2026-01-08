@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapp.entity.User
+import com.example.myapp.viewmodel.ClassDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

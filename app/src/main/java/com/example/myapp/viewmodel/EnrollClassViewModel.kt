@@ -1,4 +1,4 @@
-package com.example.myapp.ui.login
+package com.example.myapp.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -39,7 +39,7 @@ class EnrollClassViewModel(application: Application) : AndroidViewModel(applicat
             _enrollmentState.value = EnrollmentState.Success
         }
     }
-    
+
     fun resetState(){
         _enrollmentState.value = EnrollmentState.Idle
     }

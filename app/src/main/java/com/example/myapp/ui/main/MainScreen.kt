@@ -56,6 +56,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapp.R
 import com.example.myapp.ui.Categoria.Categoria
+import com.example.myapp.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

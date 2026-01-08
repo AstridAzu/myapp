@@ -1,19 +1,23 @@
 [versions]
 agp = "8.13.2"
 kotlin = "2.3.0"
+ksp = "2.3.4"
+
+# El compilador de Compose tiene su propia versión, compatible con Kotlin 1.9.22
+composeCompiler = "2.3.0"
+
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
-composeBom = "2024.06.00"
-activityCompose = "1.9.1"
-navigationCompose = "2.8.0-beta06"
-lifecycleViewmodelCompose = "2.8.4"
-room = "2.6.1"
+composeBom = "2025.12.01"
+activityCompose = "1.12.2"
+navigationCompose = "2.9.6"
+lifecycleViewmodelCompose = "2.10.0"
+room = "2.8.4"
 coroutines = "1.10.2"
-ksp = "2.3.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,4 +54,5 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+# Apuntando a la versión correcta del compilador de Compose
+kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "composeCompiler" }
