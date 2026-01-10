@@ -1,6 +1,7 @@
 package com.example.myapp.ui.main
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,6 +76,7 @@ fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainVie
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+
         drawerContent = {
             ModalDrawerSheet {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -102,7 +104,7 @@ fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainVie
                     onClick = {
                         scope.launch { drawerState.close() }
                         navController.navigate("login") {
-                            popUpTo(0) // Borra todo el backstack
+                            popUpTo(0)
                         }
                     }
                 )
@@ -120,7 +122,8 @@ fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainVie
                         }
                     }
                 )
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background // Asegura el fondo azul claro
         ) { paddingValues ->
             Column(
                 modifier = Modifier
@@ -141,7 +144,8 @@ fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainVie
                     Text(
                         text = "Bienvenido, ${user?.username ?: "..."}",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground // Negro en modo claro
                     )
                 }
 
@@ -177,7 +181,7 @@ fun CategoryCard(categoria: Categoria, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .padding(8.dp)
-            .aspectRatio(1f), // Hace que la tarjeta sea cuadrada
+            .aspectRatio(1f),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF31CAF8)),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {

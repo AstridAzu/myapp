@@ -1,6 +1,7 @@
 package com.example.myapp.ui.login
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -64,6 +65,7 @@ fun RegisterScreen(navController: NavController, registerViewModel: RegisterView
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -145,7 +147,7 @@ fun RegisterScreen(navController: NavController, registerViewModel: RegisterView
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("Registrarse")
         }
@@ -154,9 +156,9 @@ fun RegisterScreen(navController: NavController, registerViewModel: RegisterView
         Button(
             onClick = { navController.popBackStack() },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
         ) {
-            Text("Volver al Inicio")
+            Text("Volver al Inicio", color = MaterialTheme.colorScheme.onSecondary)
         }
     }
 
@@ -169,7 +171,6 @@ fun RegisterScreen(navController: NavController, registerViewModel: RegisterView
                 }
             }
             is RegisterViewModel.RegistrationState.Error -> {
-                // Ahora, en lugar de un Toast, mostramos el error en el campo correspondiente
                 formState = formState.copy(usernameError = state.message)
             }
             else -> {}
