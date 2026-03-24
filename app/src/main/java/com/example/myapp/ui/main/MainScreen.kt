@@ -2,207 +2,277 @@ package com.example.myapp.ui.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.myapp.R
-import com.example.myapp.ui.Categoria.Categoria
-import com.example.myapp.viewmodel.MainViewModel
+import com.example.myapp.ui.navigation.Routes
+import com.example.myapp.utils.SessionManager
 import kotlinx.coroutines.launch
+
+data class CategoryItem(
+    val title: String,
+    val icon: ImageVector
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController, userId: Int, mainViewModel: MainViewModel = viewModel()) {
-    val user by mainViewModel.user.collectAsState()
+fun MainScreen(
+    navController: NavController,
+    viewModel: MainViewModel,
+    onLogout: () -> Unit
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val selectedItem = rememberSaveable { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val userId = remember { SessionManager(context).getUserId() }
+    val nombreUsuario by viewModel.nombreUsuario.collectAsState()
 
-    LaunchedEffect(userId) {
-        if (userId != -1) {
-            mainViewModel.loadUser(userId)
-        }
-    }
+    // Colores basados en la imagen
+    val topBarColor = Color(0xFF0D1117)
+    val backgroundColor = Color(0xFFE8F0FE)
+    val cardBackgroundColor = Color(0xFF64B5F6)
+
+    val categories = listOf(
+        CategoryItem("Rutinas", Icons.Default.FitnessCenter),
+        CategoryItem("Meta Fit", Icons.Default.MonitorHeart),
+        CategoryItem("Publicaciones", Icons.Default.Smartphone),
+        CategoryItem("Mis Planes", Icons.Default.CalendarMonth),
+        CategoryItem("Trainers", Icons.Default.FitnessCenter),
+        CategoryItem("Seguimiento", Icons.Default.Groups)
+    )
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-
         drawerContent = {
             ModalDrawerSheet {
-                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(imageVector = Icons.Default.AccountCircle, contentDescription = "Perfil", modifier = Modifier.size(100.dp))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = user?.username ?: "", style = MaterialTheme.typography.titleLarge)
-                }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                    label = { Text("Perfil") },
-                    selected = selectedItem.value == "perfil",
-                    onClick = { /* TODO: Navegar a pantalla de perfil */ }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
-                    selected = selectedItem.value == "config",
-                    onClick = { /* TODO: Navegar a pantalla de configuración */ }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Salir") },
-                    label = { Text("Salir") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("login") {
-                            popUpTo(0)
-                        }
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("RATITAGYM", color = Color.White) },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF050D17)),
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú", tint = Color.White)
-                        }
-                    }
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background // Asegura el fondo azul claro
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ratitagym),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(64.dp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Menú de Opciones", style = MaterialTheme.typography.headlineSmall)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    NavigationDrawerItem(
+                        label = { Text("Inicio") },
+                        selected = true,
+                        onClick = { scope.launch { drawerState.close() } }
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "Bienvenido, ${user?.username ?: "..."}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground // Negro en modo claro
+                    NavigationDrawerItem(
+                        label = { Text("Mi Perfil") },
+                        selected = false,
+                        onClick = { /* TODO */ }
                     )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                val categorias = listOf(
-                    Categoria("Clases", Icons.Filled.FitnessCenter),
-                    Categoria("Mis Clases", Icons.Filled.Event)
-                )
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxWidth()
-                ) { 
-                    items(categorias) { categoria ->
-                        CategoryCard(categoria = categoria, onClick = {
-                            when (categoria.titulo) {
-                                "Clases" -> navController.navigate("admin_manage_class/$userId")
-                                "Mis Clases" -> navController.navigate("my_classes/$userId")
-                            }
-                        })
-                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    NavigationDrawerItem(
+                        label = { Text("Cerrar Sesión") },
+                        selected = false,
+                        onClick = { onLogout() },
+                        icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) }
+                    )
                 }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CategoryCard(categoria: Categoria, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .padding(8.dp)
-            .aspectRatio(1f),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF31CAF8)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundColor)
         ) {
-            Icon(
-                imageVector = categoria.icono,
-                contentDescription = categoria.titulo,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = categoria.titulo,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            // Top Bar Personalizada con soporte para Edge-to-Edge (Status Bar)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(topBarColor)
+                    .statusBarsPadding() // Añade el espacio de la barra de estado (hora, batería)
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                }
+                
+                // Barra de búsqueda funcional sin recortes
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color.White
+                ) {
+                    Box(
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        if (searchQuery.isEmpty()) {
+                            Text("Buscar", color = Color.Gray, fontSize = 14.sp)
+                        }
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+                            cursorBrush = SolidColor(Color.Black),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+                
+                IconButton(onClick = { /* TODO: Home action */ }) {
+                    Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+                }
+                IconButton(onClick = { /* TODO: Chat action */ }) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Chat", tint = Color.White)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Cabecera "Bienvenida, Maria"
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Icono de ratita gimnasta (placeholder con el logo)
+                Image(
+                    painter = painterResource(id = R.drawable.ratitagym),
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (nombreUsuario.isNotBlank()) "Hola, $nombreUsuario" else "Hola!",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1A1A)
+                    )
+                    Text(
+                        text = "Es el momento de superar tus límites.",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
+                IconButton(
+                    onClick = { /* TODO */ },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(
+                    onClick = { /* TODO: Settings screen */ },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Card de Categorías
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(
+                        text = "Categorías",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                        modifier = Modifier.height(260.dp),
+                        userScrollEnabled = false
+                    ) {
+                        items(categories) { category ->
+                            CategoryCardUi(category) {
+                                when (category.title) {
+                                    "Rutinas" -> navController.navigate(Routes.RutinasAlumno.createRoute(userId))
+                                    "Meta Fit" -> navController.navigate(Routes.MetaFit.createRoute(userId))
+                                    "Mis Planes" -> navController.navigate(Routes.Planes.createRoute(userId))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+@Composable
+fun CategoryCardUi(category: CategoryItem, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(70.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF4FC3F7) // Azul más claro para el fondo de los items
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = category.icon,
+                    contentDescription = category.title,
+                    modifier = Modifier.size(36.dp),
+                    tint = Color.White
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = category.title,
+            fontSize = 11.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
