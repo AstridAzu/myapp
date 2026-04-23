@@ -107,6 +107,7 @@ fun RutinaDetalleScreen(
                 }
             )
         },
+
         floatingActionButton = {
             AnimatedVisibility(visible = esPropia && !editState.isEditMode) {
                 ExtendedFloatingActionButton(
