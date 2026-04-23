@@ -7,6 +7,14 @@ Este documento detalla las tareas para la reconstrucción de la aplicación bajo
 - [✅] Flujo de autenticación unificado (Registro simple -> Login -> Dashboard).
 - [✅] Restauración de la interfaz "Ratita Gym" (Grid de 6 categorías).
 - [✅] Ajustes visuales: Header corregido (Status Bar), buscador optimizado.
+- [✅] Room actualizado a v14 con migración `13 -> 14` (`imageUrl` en `ejercicios`).
+- [✅] Soporte de imágenes en ejercicios (Detalle, Agregar y Editor) con fallback genérico local.
+- [✅] Integración de APIs R2 en app (presigned/upload/confirm/delete) en capa de datos.
+
+### Configuracion local recomendada (no commitear secretos)
+
+- IMAGE_API_BASE_URL en gradle.properties/local.properties
+- IMAGE_API_TOKEN en gradle.properties/local.properties
 
 ---
 
@@ -19,6 +27,37 @@ Prioridad: COMPLETADA. Preparar el proyecto para Clean Architecture.
     - [x] Implementar `ModalNavigationDrawer` funcional.
     - [x] Corregir solapamiento de Status Bar (`statusBarsPadding`).
     - [x] Buscador con `BasicTextField` para visualización correcta de texto.
+
+---
+
+## 🔎 Auditoría Sync: Cambios No Relacionados (2026-04-12)
+
+Objetivo: verificar que cambios en UI/tests/docs no rompen la conexión Android <-> Worker.
+
+### Resultado actual
+
+- [x] Header `x-user-id` se inyecta en cliente sync.
+- [x] `SyncWorker` usa `SessionManager.getUserIdString()` y valida UUID.
+- [x] `SYNC_API_BASE_URL` y `SYNC_API_TOKEN` están resueltos por BuildConfig.
+- [x] Validación automática de sync desbloqueada (suite de sync ejecutable en Gradle).
+
+### Hallazgo bloqueante (alto)
+
+- [x] Corregir `PerfilViewModelTest` por cambio de modelo `Long -> String` en IDs.
+    - Impacto: impide compilar `:app:testDebugUnitTest` y bloquea ejecutar suite de sync desde Gradle.
+    - Archivo afectado: `app/src/test/java/com/example/myapp/ui/perfil/PerfilViewModelTest.kt`.
+
+### Tareas de mitigación priorizadas
+
+- [x] M1. Actualizar fixtures de tests de perfil para IDs `String` (UUID-first).
+- [x] M2. Re-ejecutar `:app:testDebugUnitTest --tests "com.example.myapp.data.sync.*"`.
+- [ ] M3. Ejecutar smoke de contrato sync (push/pull) con headers reales (`Authorization` + `x-user-id`).
+- [ ] M4. Registrar evidencia de auditoría en docs de sync si M2 y M3 pasan.
+
+### Riesgos observados (seguimiento)
+
+- [ ] R1. Evitar uso accidental de `SessionManager.getUserId()` (legacy `Long`) en rutas de sync.
+- [ ] R2. Mantener secretos solo en `local.properties` / variables de entorno y nunca en commits.
 
 ---
 

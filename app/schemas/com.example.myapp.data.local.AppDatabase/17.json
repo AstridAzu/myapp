@@ -1,0 +1,1483 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 17,
+    "identityHash": "b02ba00361c7dd49720a9f515a8705d5",
+    "entities": [
+      {
+        "tableName": "usuarios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `email` TEXT NOT NULL, `passwordHash` TEXT NOT NULL, `nombre` TEXT NOT NULL, `rol` TEXT NOT NULL, `activo` INTEGER NOT NULL, `fechaRegistro` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "passwordHash",
+            "columnName": "passwordHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rol",
+            "columnName": "rol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaRegistro",
+            "columnName": "fechaRegistro",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_usuarios_email",
+            "unique": true,
+            "columnNames": [
+              "email"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_usuarios_email` ON `${TABLE_NAME}` (`email`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "especialidades",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idUsuario` INTEGER NOT NULL, `nombre` TEXT NOT NULL, FOREIGN KEY(`idUsuario`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_especialidades_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_especialidades_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuario"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "certificaciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idUsuario` INTEGER NOT NULL, `nombre` TEXT NOT NULL, `institucion` TEXT NOT NULL, `fechaObtencion` INTEGER NOT NULL, FOREIGN KEY(`idUsuario`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "institucion",
+            "columnName": "institucion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaObtencion",
+            "columnName": "fechaObtencion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_certificaciones_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_certificaciones_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuario"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "objetivos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idUsuario` INTEGER NOT NULL, `descripcion` TEXT NOT NULL, FOREIGN KEY(`idUsuario`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_objetivos_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_objetivos_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuario"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ejercicios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `grupoMuscular` TEXT NOT NULL, `descripcion` TEXT, `idCreador` INTEGER, `imageUrl` TEXT, `colorHex` TEXT, `icono` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grupoMuscular",
+            "columnName": "grupoMuscular",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "idCreador",
+            "columnName": "idCreador",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "colorHex",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "icono",
+            "columnName": "icono",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ejercicios_idCreador",
+            "unique": false,
+            "columnNames": [
+              "idCreador"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ejercicios_idCreador` ON `${TABLE_NAME}` (`idCreador`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "rutinas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idCreador` INTEGER NOT NULL, `nombre` TEXT NOT NULL, `descripcion` TEXT, `fechaCreacion` INTEGER NOT NULL, `activa` INTEGER NOT NULL, `codigo` TEXT NOT NULL, `colorHex` TEXT, `icono` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idCreador",
+            "columnName": "idCreador",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activa",
+            "columnName": "activa",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codigo",
+            "columnName": "codigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "colorHex",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "icono",
+            "columnName": "icono",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_rutinas_idCreador",
+            "unique": false,
+            "columnNames": [
+              "idCreador"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rutinas_idCreador` ON `${TABLE_NAME}` (`idCreador`)"
+          },
+          {
+            "name": "index_rutinas_codigo",
+            "unique": true,
+            "columnNames": [
+              "codigo"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_rutinas_codigo` ON `${TABLE_NAME}` (`codigo`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "rutina_ejercicios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idRutina` INTEGER NOT NULL, `idEjercicio` INTEGER NOT NULL, `series` INTEGER NOT NULL, `reps` INTEGER NOT NULL, `orden` INTEGER NOT NULL, `notas` TEXT, PRIMARY KEY(`idRutina`, `idEjercicio`), FOREIGN KEY(`idRutina`) REFERENCES `rutinas`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idEjercicio`) REFERENCES `ejercicios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "idRutina",
+            "columnName": "idRutina",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idEjercicio",
+            "columnName": "idEjercicio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "series",
+            "columnName": "series",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "idRutina",
+            "idEjercicio"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_rutina_ejercicios_idRutina",
+            "unique": false,
+            "columnNames": [
+              "idRutina"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rutina_ejercicios_idRutina` ON `${TABLE_NAME}` (`idRutina`)"
+          },
+          {
+            "name": "index_rutina_ejercicios_idEjercicio",
+            "unique": false,
+            "columnNames": [
+              "idEjercicio"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rutina_ejercicios_idEjercicio` ON `${TABLE_NAME}` (`idEjercicio`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "rutinas",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idRutina"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "ejercicios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idEjercicio"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "rutina_accesos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idRutina` INTEGER NOT NULL, `idUsuario` INTEGER NOT NULL, `fechaAcceso` INTEGER NOT NULL, PRIMARY KEY(`idRutina`, `idUsuario`), FOREIGN KEY(`idRutina`) REFERENCES `rutinas`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idUsuario`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "idRutina",
+            "columnName": "idRutina",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaAcceso",
+            "columnName": "fechaAcceso",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "idRutina",
+            "idUsuario"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_rutina_accesos_idRutina",
+            "unique": false,
+            "columnNames": [
+              "idRutina"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rutina_accesos_idRutina` ON `${TABLE_NAME}` (`idRutina`)"
+          },
+          {
+            "name": "index_rutina_accesos_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rutina_accesos_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "rutinas",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idRutina"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuario"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "sesiones_rutina",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idRutina` INTEGER NOT NULL, `idUsuario` INTEGER NOT NULL, `fechaInicio` INTEGER NOT NULL, `fechaFin` INTEGER, `completada` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idRutina",
+            "columnName": "idRutina",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaInicio",
+            "columnName": "fechaInicio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaFin",
+            "columnName": "fechaFin",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "completada",
+            "columnName": "completada",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "registros_series",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idSesion` INTEGER NOT NULL, `idEjercicio` INTEGER NOT NULL, `numeroSerie` INTEGER NOT NULL, `pesoKg` REAL NOT NULL, `repsRealizadas` INTEGER NOT NULL, `completada` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idSesion",
+            "columnName": "idSesion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idEjercicio",
+            "columnName": "idEjercicio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numeroSerie",
+            "columnName": "numeroSerie",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pesoKg",
+            "columnName": "pesoKg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repsRealizadas",
+            "columnName": "repsRealizadas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completada",
+            "columnName": "completada",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "asignaciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idUsuarioOrigen` INTEGER NOT NULL, `idUsuarioDestino` INTEGER NOT NULL, `fechaAsignacion` INTEGER NOT NULL, PRIMARY KEY(`idUsuarioOrigen`, `idUsuarioDestino`), FOREIGN KEY(`idUsuarioOrigen`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idUsuarioDestino`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "idUsuarioOrigen",
+            "columnName": "idUsuarioOrigen",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuarioDestino",
+            "columnName": "idUsuarioDestino",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaAsignacion",
+            "columnName": "fechaAsignacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "idUsuarioOrigen",
+            "idUsuarioDestino"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_asignaciones_idUsuarioOrigen",
+            "unique": false,
+            "columnNames": [
+              "idUsuarioOrigen"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_asignaciones_idUsuarioOrigen` ON `${TABLE_NAME}` (`idUsuarioOrigen`)"
+          },
+          {
+            "name": "index_asignaciones_idUsuarioDestino",
+            "unique": false,
+            "columnNames": [
+              "idUsuarioDestino"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_asignaciones_idUsuarioDestino` ON `${TABLE_NAME}` (`idUsuarioDestino`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuarioOrigen"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuarioDestino"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "plan_asignaciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idPlan` INTEGER NOT NULL, `idUsuarioAsignador` INTEGER NOT NULL, `idUsuarioAsignado` INTEGER NOT NULL, `activa` INTEGER NOT NULL, `fechaAsignacion` INTEGER NOT NULL, `fechaCancelacion` INTEGER, FOREIGN KEY(`idPlan`) REFERENCES `planes_semana`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idUsuarioAsignador`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idUsuarioAsignado`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idPlan",
+            "columnName": "idPlan",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuarioAsignador",
+            "columnName": "idUsuarioAsignador",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuarioAsignado",
+            "columnName": "idUsuarioAsignado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activa",
+            "columnName": "activa",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaAsignacion",
+            "columnName": "fechaAsignacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCancelacion",
+            "columnName": "fechaCancelacion",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_asignaciones_idPlan",
+            "unique": false,
+            "columnNames": [
+              "idPlan"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_asignaciones_idPlan` ON `${TABLE_NAME}` (`idPlan`)"
+          },
+          {
+            "name": "index_plan_asignaciones_idUsuarioAsignador",
+            "unique": false,
+            "columnNames": [
+              "idUsuarioAsignador"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_asignaciones_idUsuarioAsignador` ON `${TABLE_NAME}` (`idUsuarioAsignador`)"
+          },
+          {
+            "name": "index_plan_asignaciones_idUsuarioAsignado",
+            "unique": false,
+            "columnNames": [
+              "idUsuarioAsignado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_asignaciones_idUsuarioAsignado` ON `${TABLE_NAME}` (`idUsuarioAsignado`)"
+          },
+          {
+            "name": "index_plan_asignaciones_idUsuarioAsignador_idUsuarioAsignado",
+            "unique": false,
+            "columnNames": [
+              "idUsuarioAsignador",
+              "idUsuarioAsignado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_asignaciones_idUsuarioAsignador_idUsuarioAsignado` ON `${TABLE_NAME}` (`idUsuarioAsignador`, `idUsuarioAsignado`)"
+          },
+          {
+            "name": "index_plan_asignaciones_idPlan_idUsuarioAsignado_activa",
+            "unique": false,
+            "columnNames": [
+              "idPlan",
+              "idUsuarioAsignado",
+              "activa"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_asignaciones_idPlan_idUsuarioAsignado_activa` ON `${TABLE_NAME}` (`idPlan`, `idUsuarioAsignado`, `activa`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "planes_semana",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idPlan"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuarioAsignador"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuarioAsignado"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "planes_semana",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idCreador` INTEGER NOT NULL, `idUsuario` INTEGER NOT NULL, `nombre` TEXT NOT NULL, `fechaInicio` INTEGER NOT NULL, `fechaFin` INTEGER NOT NULL, `activo` INTEGER NOT NULL, `fechaCreacion` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idCreador",
+            "columnName": "idCreador",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaInicio",
+            "columnName": "fechaInicio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaFin",
+            "columnName": "fechaFin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_planes_semana_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planes_semana_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          },
+          {
+            "name": "index_planes_semana_idCreador",
+            "unique": false,
+            "columnNames": [
+              "idCreador"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planes_semana_idCreador` ON `${TABLE_NAME}` (`idCreador`)"
+          },
+          {
+            "name": "index_planes_semana_idCreador_idUsuario_activo",
+            "unique": false,
+            "columnNames": [
+              "idCreador",
+              "idUsuario",
+              "activo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planes_semana_idCreador_idUsuario_activo` ON `${TABLE_NAME}` (`idCreador`, `idUsuario`, `activo`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "plan_dias",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idPlan` INTEGER NOT NULL, `diaSemana` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `idRutina` INTEGER, `orden` INTEGER NOT NULL, `notas` TEXT, FOREIGN KEY(`idPlan`) REFERENCES `planes_semana`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idPlan",
+            "columnName": "idPlan",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diaSemana",
+            "columnName": "diaSemana",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idRutina",
+            "columnName": "idRutina",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_dias_idPlan",
+            "unique": false,
+            "columnNames": [
+              "idPlan"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_dias_idPlan` ON `${TABLE_NAME}` (`idPlan`)"
+          },
+          {
+            "name": "index_plan_dias_idPlan_diaSemana",
+            "unique": false,
+            "columnNames": [
+              "idPlan",
+              "diaSemana"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_dias_idPlan_diaSemana` ON `${TABLE_NAME}` (`idPlan`, `diaSemana`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "planes_semana",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idPlan"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "plan_dias_fecha",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idPlan` INTEGER NOT NULL, `fecha` INTEGER NOT NULL, `diaSemana` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `idRutina` INTEGER, `orden` INTEGER NOT NULL, `notas` TEXT, FOREIGN KEY(`idPlan`) REFERENCES `planes_semana`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idPlan",
+            "columnName": "idPlan",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diaSemana",
+            "columnName": "diaSemana",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idRutina",
+            "columnName": "idRutina",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_dias_fecha_idPlan",
+            "unique": false,
+            "columnNames": [
+              "idPlan"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_dias_fecha_idPlan` ON `${TABLE_NAME}` (`idPlan`)"
+          },
+          {
+            "name": "index_plan_dias_fecha_idPlan_fecha",
+            "unique": true,
+            "columnNames": [
+              "idPlan",
+              "fecha"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_plan_dias_fecha_idPlan_fecha` ON `${TABLE_NAME}` (`idPlan`, `fecha`)"
+          },
+          {
+            "name": "index_plan_dias_fecha_idPlan_diaSemana",
+            "unique": false,
+            "columnNames": [
+              "idPlan",
+              "diaSemana"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_dias_fecha_idPlan_diaSemana` ON `${TABLE_NAME}` (`idPlan`, `diaSemana`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "planes_semana",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idPlan"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "sesiones_programadas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idPlanDia` INTEGER NOT NULL, `fechaProgramada` INTEGER NOT NULL, `idSesion` INTEGER, `completada` INTEGER NOT NULL, `omitida` INTEGER NOT NULL, FOREIGN KEY(`idPlanDia`) REFERENCES `plan_dias`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idPlanDia",
+            "columnName": "idPlanDia",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaProgramada",
+            "columnName": "fechaProgramada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idSesion",
+            "columnName": "idSesion",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "completada",
+            "columnName": "completada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "omitida",
+            "columnName": "omitida",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sesiones_programadas_idPlanDia",
+            "unique": false,
+            "columnNames": [
+              "idPlanDia"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sesiones_programadas_idPlanDia` ON `${TABLE_NAME}` (`idPlanDia`)"
+          },
+          {
+            "name": "index_sesiones_programadas_fechaProgramada",
+            "unique": false,
+            "columnNames": [
+              "fechaProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sesiones_programadas_fechaProgramada` ON `${TABLE_NAME}` (`fechaProgramada`)"
+          },
+          {
+            "name": "index_sesiones_programadas_idPlanDia_fechaProgramada",
+            "unique": true,
+            "columnNames": [
+              "idPlanDia",
+              "fechaProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sesiones_programadas_idPlanDia_fechaProgramada` ON `${TABLE_NAME}` (`idPlanDia`, `fechaProgramada`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "plan_dias",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idPlanDia"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "notificaciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idUsuario` INTEGER NOT NULL, `idSesionProgramada` INTEGER, `tipo` TEXT NOT NULL, `titulo` TEXT NOT NULL, `mensaje` TEXT NOT NULL, `fechaProgramada` INTEGER NOT NULL, `fechaEntrega` INTEGER, `estado` TEXT NOT NULL, `intentos` INTEGER NOT NULL, `errorCodigo` TEXT, `activo` INTEGER NOT NULL, `fechaCreacion` INTEGER NOT NULL, FOREIGN KEY(`idUsuario`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`idSesionProgramada`) REFERENCES `sesiones_programadas`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idUsuario",
+            "columnName": "idUsuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idSesionProgramada",
+            "columnName": "idSesionProgramada",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titulo",
+            "columnName": "titulo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mensaje",
+            "columnName": "mensaje",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaProgramada",
+            "columnName": "fechaProgramada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaEntrega",
+            "columnName": "fechaEntrega",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentos",
+            "columnName": "intentos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "errorCodigo",
+            "columnName": "errorCodigo",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_notificaciones_idUsuario",
+            "unique": false,
+            "columnNames": [
+              "idUsuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_idUsuario` ON `${TABLE_NAME}` (`idUsuario`)"
+          },
+          {
+            "name": "index_notificaciones_idSesionProgramada",
+            "unique": false,
+            "columnNames": [
+              "idSesionProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_idSesionProgramada` ON `${TABLE_NAME}` (`idSesionProgramada`)"
+          },
+          {
+            "name": "index_notificaciones_tipo_activo",
+            "unique": false,
+            "columnNames": [
+              "tipo",
+              "activo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_tipo_activo` ON `${TABLE_NAME}` (`tipo`, `activo`)"
+          },
+          {
+            "name": "index_notificaciones_estado_fechaProgramada",
+            "unique": false,
+            "columnNames": [
+              "estado",
+              "fechaProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_estado_fechaProgramada` ON `${TABLE_NAME}` (`estado`, `fechaProgramada`)"
+          },
+          {
+            "name": "index_notificaciones_idUsuario_tipo_activo",
+            "unique": false,
+            "columnNames": [
+              "idUsuario",
+              "tipo",
+              "activo"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_idUsuario_tipo_activo` ON `${TABLE_NAME}` (`idUsuario`, `tipo`, `activo`)"
+          },
+          {
+            "name": "index_notificaciones_idSesionProgramada_fechaProgramada",
+            "unique": false,
+            "columnNames": [
+              "idSesionProgramada",
+              "fechaProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificaciones_idSesionProgramada_fechaProgramada` ON `${TABLE_NAME}` (`idSesionProgramada`, `fechaProgramada`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "usuarios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idUsuario"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "sesiones_programadas",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "idSesionProgramada"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "sync_cursors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`entityType` TEXT NOT NULL, `since` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`entityType`))",
+        "fields": [
+          {
+            "fieldPath": "entityType",
+            "columnName": "entityType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "since",
+            "columnName": "since",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "entityType"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b02ba00361c7dd49720a9f515a8705d5')"
+    ]
+  }
+}

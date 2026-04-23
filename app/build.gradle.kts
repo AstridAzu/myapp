@@ -4,6 +4,25 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+import java.util.Properties
+
+fun Project.resolveConfigValue(key: String, localProps: Properties): String? {
+    val gradleValue = findProperty(key)?.toString()?.takeIf { it.isNotBlank() }
+    if (gradleValue != null) return gradleValue
+
+    val localValue = localProps.getProperty(key)?.takeIf { it.isNotBlank() }
+    if (localValue != null) return localValue
+
+    return System.getenv(key)?.takeIf { it.isNotBlank() }
+}
+
+val localProps = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+
 android {
     namespace = "com.example.myapp"
     compileSdk = 34
@@ -14,6 +33,20 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        val imageApiBaseUrl = project.resolveConfigValue("IMAGE_API_BASE_URL", localProps)
+            ?: "https://ratita-gym--worker.azucenapolo6.workers.dev"
+        val imageApiToken = project.resolveConfigValue("IMAGE_API_TOKEN", localProps) ?: ""
+        val syncApiBaseUrl = project.resolveConfigValue("SYNC_API_BASE_URL", localProps)
+            ?: imageApiBaseUrl
+        val syncApiToken = project.resolveConfigValue("SYNC_API_TOKEN", localProps)
+            ?: imageApiToken
+        val syncRemoteIdStrategy = project.resolveConfigValue("SYNC_REMOTE_ID_STRATEGY", localProps)
+            ?: "STRICT"
+        buildConfigField("String", "IMAGE_API_BASE_URL", "\"$imageApiBaseUrl\"")
+        buildConfigField("String", "IMAGE_API_TOKEN", "\"$imageApiToken\"")
+        buildConfigField("String", "SYNC_API_BASE_URL", "\"$syncApiBaseUrl\"")
+        buildConfigField("String", "SYNC_API_TOKEN", "\"$syncApiToken\"")
+        buildConfigField("String", "SYNC_REMOTE_ID_STRATEGY", "\"$syncRemoteIdStrategy\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -22,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -50,6 +84,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 dependencies {
     // Import the Compose BOM
@@ -72,6 +110,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.coil.compose)
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -81,8 +120,17 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
+    // Sync infra
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     // Testing
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("io.mockk:mockk:1.13.12")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)

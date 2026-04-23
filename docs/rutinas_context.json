@@ -1,0 +1,155 @@
+{
+  "project": "App de Entrenamiento Personal",
+  "stack": "Kotlin + Jetpack Compose + Material 3 + Room + Navigation Compose + MVVM + manual DI (ViewModelFactory)",
+  "db_version": 5,
+  "session_summary": "Implementación completa de la vista de Rutinas: pantalla, detalle, seed de datos, navegación y reorganización de paquetes.",
+
+  "package_structure": {
+    "rutinas": "com.example.myapp.ui.rutinas (movido desde ui/entrenador/rutinas/)",
+    "navigation": "com.example.myapp.ui.navigation",
+    "data_database": "com.example.myapp.data.database",
+    "data_dao": "com.example.myapp.data.local.dao",
+    "data_entities": "com.example.myapp.data.local.entities",
+    "data_repository": "com.example.myapp.data.repository"
+  },
+
+  "files_created": [
+    {
+      "file": "ui/rutinas/RutinasScreen.kt",
+      "description": "Pantalla principal de rutinas. Dos secciones: 'Rutinas predefinidas' (idCreador=0) y 'Mis rutinas' (del usuario logueado). Cards con franja de color lateral + ícono por categoría para presets. ExtendedFAB 'Nueva Rutina' navega a CrearRutina. Tap en card navega a RutinaDetalle.",
+      "key_composables": ["RutinasScreen", "PresetRutinaCard", "RutinaCard", "SectionHeader", "EmptyRutinasHint"],
+      "color_map": {
+        "Fuerza": "0xFFE53935 (rojo)",
+        "Resistencia": "0xFFFF6F00 (naranja)",
+        "Flexibilidad": "0xFF00897B (verde)",
+        "Hipertrofia Funcional": "CategoryCardColor (cyan #31CAF8)"
+      },
+      "icon_map": {
+        "Fuerza": "Icons.Default.FitnessCenter",
+        "Resistencia": "Icons.AutoMirrored.Filled.DirectionsRun",
+        "Flexibilidad": "Icons.Default.SelfImprovement",
+        "Hipertrofia Funcional": "Icons.Default.Bolt"
+      }
+    },
+    {
+      "file": "ui/rutinas/RutinasViewModel.kt",
+      "description": "Expone dos StateFlow: presetRutinas (idCreador=0, via getPresetRutinas()) y misRutinas (del usuario, via getRutinasAccesibles(idUsuario)). Constructor: RutinaRepository + idUsuario: Long.",
+      "state_flows": ["presetRutinas: StateFlow<List<RutinaEntity>>", "misRutinas: StateFlow<List<RutinaEntity>>"]
+    },
+    {
+      "file": "ui/rutinas/RutinaDetalleScreen.kt",
+      "description": "Muestra nombre, descripción y lista de ejercicios de una rutina. Cada ejercicio tiene orden, nombre y badge 'series × reps'. Estado vacío si no tiene ejercicios.",
+      "key_composables": ["RutinaDetalleScreen", "EjercicioDetalleItem"]
+    },
+    {
+      "file": "ui/rutinas/RutinaDetalleViewModel.kt",
+      "description": "Carga rutina por id via getRutinaById(idRutina) y ejercicios via getDetalleRutina(idRutina). Constructor: RutinaRepository + idRutina: Long.",
+      "state_flows": ["rutina: StateFlow<RutinaEntity?>", "ejercicios: StateFlow<List<EjercicioConDetalle>>"]
+    }
+  ],
+
+  "files_modified": [
+    {
+      "file": "data/local/entities/RutinaEntity.kt",
+      "change": "Eliminada @ForeignKey a UsuarioEntity en idCreador. Se mantiene el campo idCreador: Long y el índice. idCreador=0L es convención para rutinas del sistema."
+    },
+    {
+      "file": "data/local/AppDatabase.kt",
+      "change": "Versión bumpeada de 4 a 5. fallbackToDestructiveMigration() maneja la migración."
+    },
+    {
+      "file": "data/local/dao/RutinaDao.kt",
+      "changes": [
+        "insertRutinaIgnore(rutina): Long — OnConflictStrategy.IGNORE, idempotente por codigo UNIQUE",
+        "getPresetRutinas(): Flow<List<RutinaEntity>> — WHERE idCreador = 0",
+        "getRutinaById(id): Flow<RutinaEntity?>"
+      ]
+    },
+    {
+      "file": "data/local/dao/EjercicioDao.kt",
+      "changes": [
+        "insertIgnore(ejercicio): Long — OnConflictStrategy.IGNORE",
+        "count(): Int — SELECT COUNT(*) FROM ejercicios"
+      ]
+    },
+    {
+      "file": "data/local/dao/UsuarioDao.kt",
+      "changes": [
+        "insertIgnore(usuario): Long — OnConflictStrategy.IGNORE, idempotente por email UNIQUE"
+      ]
+    },
+    {
+      "file": "data/repository/RutinaRepository.kt",
+      "changes": [
+        "getPresetRutinas() = rutinaDao.getPresetRutinas()",
+        "getRutinaById(idRutina) = rutinaDao.getRutinaById(idRutina)"
+      ]
+    },
+    {
+      "file": "data/database/DatabaseBuilder.kt",
+      "change": "Cambio de onCreate a onOpen para el seed — onOpen corre en cada apertura de la DB. Seed idempotente con IGNORE. Tres funciones privadas: seedEjercicios, seedRutinasPreset, seedUsuariosTest.",
+      "seed_data": {
+        "rutinas_preset": [
+          { "codigo": "PRESET01", "nombre": "Fuerza", "idCreador": 0 },
+          { "codigo": "PRESET02", "nombre": "Resistencia", "idCreador": 0 },
+          { "codigo": "PRESET03", "nombre": "Flexibilidad", "idCreador": 0 },
+          { "codigo": "PRESET04", "nombre": "Hipertrofia Funcional", "idCreador": 0 }
+        ],
+        "ejercicios": ["Press de Banca (Pecho)", "Sentadilla (Pierna)", "Peso Muerto (Espalda)", "Press Militar (Hombro)", "Dominadas (Espalda)"],
+        "usuarios_test": [
+          { "email": "test@test.com", "password": "123456", "rol": "ENTRENADOR" },
+          { "email": "alumno@test.com", "password": "123456", "rol": "ALUMNO" }
+        ]
+      }
+    },
+    {
+      "file": "ui/navigation/Routes.kt",
+      "changes": [
+        "Agregado: object RutinaDetalle : Routes('rutina_detalle/{rutinaId}') con createRoute(rutinaId: Long)",
+        "Eliminado: object UnirseRutina (pantalla removida, lógica no aplica al modelo actual)"
+      ]
+    },
+    {
+      "file": "ui/navigation/NavGraph.kt",
+      "changes": [
+        "Imports actualizados a com.example.myapp.ui.rutinas.*",
+        "Eliminado composable de UnirseRutina/CrearAlumnoScreen",
+        "Agregado composable para Routes.RutinaDetalle con RutinaDetalleViewModel",
+        "Variable alumnoId renombrada a idUsuario en composables de rutinas"
+      ]
+    },
+    {
+      "file": "ui/ViewModelFactory.kt",
+      "changes": [
+        "Eliminado: CrearAlumnoViewModel (import + bloque when)",
+        "Parámetro renombrado: idAlumno → idUsuario",
+        "Imports actualizados a com.example.myapp.ui.rutinas.*",
+        "Agregado: RutinaDetalleViewModel"
+      ]
+    },
+    {
+      "file": "ui/main/MainScreen.kt",
+      "changes": [
+        "Botón 'Rutinas' conectado: navController.navigate(Routes.RutinasAlumno.createRoute(userId))",
+        "userId obtenido via SessionManager(context).getUserId()",
+        "Rutas de 'Trainers' y 'Estudiantes' actualizadas a Routes.EntrenadorHome.route y Routes.AlumnoHome.route",
+        "Icon Logout actualizado a Icons.AutoMirrored.Filled.Logout"
+      ]
+    }
+  ],
+
+  "architecture_notes": {
+    "roles": "Un solo modelo de usuario (UsuarioEntity) con campo rol: String = 'ENTRENADOR' | 'ALUMNO'. No hay tablas separadas por rol.",
+    "rutinas_preset": "idCreador = 0L es la convención para rutinas del sistema. No existe usuario con id=0 en la tabla usuarios. FK fue removida de RutinaEntity para permitir esto.",
+    "seed_strategy": "onOpen callback en Room con OnConflictStrategy.IGNORE. Idempotente en cada apertura. seedEjercicios usa count() para evitar duplicados (no hay UNIQUE en nombre).",
+    "di": "Manual via ViewModelFactory(context, idUsuario). Sin Hilt. idUsuario se pasa a RutinasViewModel, RutinaEditorViewModel y RutinaDetalleViewModel.",
+    "navigation_params": "RutinasAlumno y CrearRutina usan el parámetro de ruta 'alumnoId' (nombre histórico en la URL), pero la variable en código se llama idUsuario."
+  },
+
+  "pending_todos": [
+    "RutinaEditorScreen/ViewModel ya existen (movidos a ui/rutinas/) pero no conectan con RutinasScreen para editar rutinas existentes",
+    "EntrenadorHomeScreen y AlumnoHomeScreen existen pero no están diferenciados por rol en el flujo post-login (todos van a MainScreen)",
+    "DetalleAlumnoScreen: ruta definida en Routes pero sin pantalla implementada",
+    "Especialidades, Certificaciones, Objetivos del entrenador: sin pantallas"
+  ]
+}
