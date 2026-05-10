@@ -57,71 +57,103 @@ fun LoginScreen(
                 val database = DatabaseBuilder.getDatabase(context)
                 val baseUrl = BuildConfig.SYNC_API_BASE_URL.trim()
                 
-                android.util.Log.d("LoginScreen", "Login successful. Starting sync. baseUrl=$baseUrl")
+                // if (BuildConfig.DEBUG) { // Eliminado
+                //    android.util.Log.d("LoginScreen", "Login successful. Starting sync. baseUrl=$baseUrl") // Eliminado
+                // }
                 
                 if (baseUrl.isNotBlank()) {
                     // 1. Sincronizar ejercicios base
-                    android.util.Log.d("LoginScreen", "Syncing base exercises...")
+                    // if (BuildConfig.DEBUG) { // Eliminado
+                    //    android.util.Log.d("LoginScreen", "Syncing base exercises...") // Eliminado
+                    // }
                     try {
                         val exercisesApi = ExercisesApiFactory.create(baseUrl)
                         val baseExercisesMgr = BaseExercisesSyncManager(database, exercisesApi)
                         val result = baseExercisesMgr.syncBaseExercises()
                         result.fold(
                             onSuccess = {
-                                android.util.Log.d("LoginScreen", "✓ Base exercises synced successfully")
+                                // if (BuildConfig.DEBUG) { // Eliminado
+                                //    android.util.Log.d("LoginScreen", "✓ Base exercises synced successfully") // Eliminado
+                                // }
                             },
                             onFailure = { error ->
-                                android.util.Log.w("LoginScreen", "⚠ Base exercises sync failed", error)
+                                if (BuildConfig.DEBUG) {
+                                    android.util.Log.w("LoginScreen", "⚠ Base exercises sync failed", error)
+                                }
                             }
                         )
                     } catch (e: Exception) {
-                        android.util.Log.e("LoginScreen", "Exception syncing exercises", e)
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.e("LoginScreen", "Exception syncing exercises", e)
+                        }
                     }
                     
                     // 2. Sincronizar rutinas base
-                    android.util.Log.d("LoginScreen", "Syncing base routines...")
+                    // if (BuildConfig.DEBUG) { // Eliminado
+                    //    android.util.Log.d("LoginScreen", "Syncing base routines...") // Eliminado
+                    // }
                     try {
                         val routinesApi = RoutinesApiFactory.create(baseUrl)
                         val baseRoutinesMgr = BaseRoutinesSyncManager(database, routinesApi)
                         val result = baseRoutinesMgr.syncBaseRoutines()
                         result.fold(
                             onSuccess = {
-                                android.util.Log.d("LoginScreen", "✓ Base routines synced successfully")
+                                // if (BuildConfig.DEBUG) { // Eliminado
+                                //    android.util.Log.d("LoginScreen", "✓ Base routines synced successfully") // Eliminado
+                                // }
                             },
                             onFailure = { error ->
-                                android.util.Log.w("LoginScreen", "⚠ Base routines sync failed", error)
+                                if (BuildConfig.DEBUG) {
+                                    android.util.Log.w("LoginScreen", "⚠ Base routines sync failed", error)
+                                }
                             }
                         )
                     } catch (e: Exception) {
-                        android.util.Log.e("LoginScreen", "Exception syncing routines", e)
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.e("LoginScreen", "Exception syncing routines", e)
+                        }
                     }
                     
                     // 3. Sincronizar vínculos rutina-ejercicio base
-                    android.util.Log.d("LoginScreen", "Syncing base routine links...")
+                    // if (BuildConfig.DEBUG) { // Eliminado
+                    //    android.util.Log.d("LoginScreen", "Syncing base routine links...") // Eliminado
+                    // }
                     try {
                         val routinesApi = RoutinesApiFactory.create(baseUrl)
                         val baseRoutineLinksMgr = BaseRoutineLinksSyncManager(database, routinesApi)
                         val result = baseRoutineLinksMgr.syncBaseRoutineLinks()
                         result.fold(
                             onSuccess = {
-                                android.util.Log.d("LoginScreen", "✓ Base routine links synced successfully")
+                                // if (BuildConfig.DEBUG) { // Eliminado
+                                //    android.util.Log.d("LoginScreen", "✓ Base routine links synced successfully") // Eliminado
+                                // }
                             },
                             onFailure = { error ->
-                                android.util.Log.w("LoginScreen", "⚠ Base routine links sync failed", error)
+                                if (BuildConfig.DEBUG) {
+                                    android.util.Log.w("LoginScreen", "⚠ Base routine links sync failed", error)
+                                }
                             }
                         )
                     } catch (e: Exception) {
-                        android.util.Log.e("LoginScreen", "Exception syncing routine links", e)
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.e("LoginScreen", "Exception syncing routine links", e)
+                        }
                     }
                 } else {
-                    android.util.Log.w("LoginScreen", "BaseUrl is blank!")
+                    if (BuildConfig.DEBUG) {
+                        android.util.Log.w("LoginScreen", "BaseUrl is blank!")
+                    }
                 }
                 
-                android.util.Log.d("LoginScreen", "Sync complete. Navigating to Main...")
+                // if (BuildConfig.DEBUG) { // Eliminado
+                //    android.util.Log.d("LoginScreen", "Sync complete. Navigating to Main...") // Eliminado
+                // }
                 
             } catch (e: Exception) {
                 val errorMsg = "Base sync failed: ${e.message}"
-                android.util.Log.e("LoginScreen", errorMsg, e)
+                if (BuildConfig.DEBUG) {
+                    android.util.Log.e("LoginScreen", errorMsg, e)
+                }
                 syncError = errorMsg
             } finally {
                 isSyncing = false

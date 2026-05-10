@@ -16,7 +16,7 @@ import com.example.myapp.utils.SessionManager
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("DEBUG_TEST", "MainActivity.onCreate ejecutado")
+        // Log.d("DEBUG_TEST", "MainActivity.onCreate ejecutado") // Eliminado
         enableEdgeToEdge()
         SyncRuntimeDispatcher.init(this)
         SyncScheduler.enqueuePeriodicSync(this)

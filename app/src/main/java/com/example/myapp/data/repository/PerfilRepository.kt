@@ -19,6 +19,9 @@ class PerfilRepository(private val database: AppDatabase) {
     suspend fun getUsuarioById(userId: String): UsuarioEntity? =
         usuarioDao.getUserById(userId)
 
+    fun observeUsuarioById(userId: String): Flow<UsuarioEntity?> =
+        usuarioDao.observeUserById(userId)
+
     suspend fun updateUsuario(usuario: UsuarioEntity) {
         val updated = usuario.copy(
             updatedAt = System.currentTimeMillis(),
@@ -29,6 +32,44 @@ class PerfilRepository(private val database: AppDatabase) {
         val pushSuccess = CloudPushHelper.pushItemsCloudFirst(
             items = listOf(updated.toPushDto()),
             preferredUserId = usuario.id
+        )
+        val finalStatus = if (pushSuccess) "SYNCED" else "PENDING"
+        
+        usuarioDao.update(updated.copy(syncStatus = finalStatus))
+        if (!pushSuccess) SyncRuntimeDispatcher.requestSyncNow()
+    }
+
+    suspend fun updateFotoUrl(userId: String, fotoUrl: String) {
+        val usuario = usuarioDao.getUserById(userId) ?: return
+        val updated = usuario.copy(
+            fotoUrl = fotoUrl,
+            updatedAt = System.currentTimeMillis(),
+            syncStatus = "PENDING",
+            deletedAt = null
+        )
+        
+        val pushSuccess = CloudPushHelper.pushItemsCloudFirst(
+            items = listOf(updated.toPushDto()),
+            preferredUserId = userId
+        )
+        val finalStatus = if (pushSuccess) "SYNCED" else "PENDING"
+        
+        usuarioDao.update(updated.copy(syncStatus = finalStatus))
+        if (!pushSuccess) SyncRuntimeDispatcher.requestSyncNow()
+    }
+
+    suspend fun deleteFotoUrl(userId: String) {
+        val usuario = usuarioDao.getUserById(userId) ?: return
+        val updated = usuario.copy(
+            fotoUrl = null,
+            updatedAt = System.currentTimeMillis(),
+            syncStatus = "PENDING",
+            deletedAt = null
+        )
+        
+        val pushSuccess = CloudPushHelper.pushItemsCloudFirst(
+            items = listOf(updated.toPushDto()),
+            preferredUserId = userId
         )
         val finalStatus = if (pushSuccess) "SYNCED" else "PENDING"
         
@@ -157,6 +198,7 @@ class PerfilRepository(private val database: AppDatabase) {
             addProperty("rol", rol)
             addProperty("activo", activo)
             addProperty("deletedAt", deletedAt)
+            addProperty("fotoUrl", fotoUrl) // Add fotoUrl to the payload
         }
         return SyncPushItemDto(
             entityType = "usuarios",

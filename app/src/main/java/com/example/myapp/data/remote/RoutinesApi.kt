@@ -10,7 +10,7 @@ data class RutinaDTO(
     val colorHex: String? = null,
     val icono: String? = null,
     val descripcion: String? = null,
-    val idCreador: Long? = null,
+    val idCreador: String? = null,
     val activa: Int? = null,
     val fechaCreacion: Long? = null
 )

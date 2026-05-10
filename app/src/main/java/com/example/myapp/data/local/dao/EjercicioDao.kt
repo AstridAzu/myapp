@@ -19,7 +19,7 @@ interface EjercicioDao {
     @Query("SELECT COUNT(*) FROM ejercicios WHERE idCreador IS NULL")
     suspend fun countBaseExercises(): Int
 
-    /** Elimina todos los ejercicios base (idCreador IS NULL). */
+    /** Elimina todos los ejercicios base. */
     @Query("DELETE FROM ejercicios WHERE idCreador IS NULL")
     suspend fun deleteAllBaseExercises(): Int
 

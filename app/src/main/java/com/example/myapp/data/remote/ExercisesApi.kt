@@ -15,6 +15,7 @@ data class ExercicioDTO(
     val descripcion: String? = null,
     val colorHex: String? = null,
     val icono: String? = null,
+    val imageUrl: String? = null, // AÑADIDO: Campo para la URL de la imagen
     val sync_status: String? = null,
     val idCreador: String? = null
 )

@@ -1,5 +1,6 @@
 package com.example.myapp.data.remote.auth
 
+import com.example.myapp.data.remote.sync.SyncApiFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,7 +20,13 @@ object AuthApiFactory {
             if (!bearerToken.isNullOrBlank()) {
                 requestBuilder.header("Authorization", "Bearer $bearerToken")
             }
-            chain.proceed(requestBuilder.build())
+            
+            val response = chain.proceed(requestBuilder.build())
+            
+            // Sincronizar offset de tiempo usando el header Date de la respuesta de Auth
+            SyncApiFactory.updateServerTime(response.header("Date"))
+            
+            response
         }
 
         val client = OkHttpClient.Builder()

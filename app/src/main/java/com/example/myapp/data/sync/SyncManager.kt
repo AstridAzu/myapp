@@ -67,7 +67,7 @@ class SyncManager(
             pushPendings()
             pullIncrementalAllEntities()
 
-            Log.i(TAG, "Sync cycle complete")
+            // Log.i(TAG, "Sync cycle complete") // Eliminado
         }
     }
 
@@ -95,7 +95,7 @@ class SyncManager(
         )
         val response = syncApi.pushChanges(request)
 
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -117,7 +117,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -135,7 +135,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -153,7 +153,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -171,7 +171,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -189,7 +189,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -207,7 +207,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -225,7 +225,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -243,7 +243,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -261,7 +261,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -279,7 +279,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -297,7 +297,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -316,7 +316,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -332,12 +332,12 @@ class SyncManager(
         val pending = dao.getRutinaEjerciciosBySyncStatus(STATUS_PENDING, PAGE_SIZE)
         if (pending.isEmpty()) return
 
-        Log.d(TAG, "pushPendingsRutinaEjercicios: pending=${pending.size}")
+        // Log.d(TAG, "pushPendingsRutinaEjercicios: pending=${pending.size}") // Eliminado
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
-        val rejected = response.rejectedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
+        val rejected = response.rejectedIds?.toSet() ?: emptySet()
         if (rejected.isNotEmpty()) {
             Log.w(TAG, "pushPendingsRutinaEjercicios: rejectedIds=$rejected")
         }
@@ -352,7 +352,7 @@ class SyncManager(
                 syncedCount++
             }
         }
-        Log.d(TAG, "pushPendingsRutinaEjercicios: synced=$syncedCount accepted=${accepted.size}")
+        // Log.d(TAG, "pushPendingsRutinaEjercicios: synced=$syncedCount accepted=${accepted.size}") // Eliminado
     }
 
     private suspend fun pushPendingsRutinaAccesos() {
@@ -362,7 +362,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -381,7 +381,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -399,7 +399,7 @@ class SyncManager(
 
         val request = SyncPushRequestDto(items = pending.map { it.toPushDto() })
         val response = syncApi.pushChanges(request)
-        val accepted = response.acceptedIds.toSet()
+        val accepted = response.acceptedIds?.toSet() ?: emptySet()
         if (accepted.isEmpty()) return
 
         val now = System.currentTimeMillis()
@@ -478,10 +478,11 @@ class SyncManager(
                 val payload = item.payload
                 val nombre = payload.requireString("nombre", "usuarios", item.id)
                 val rol = payload.requireString("rol", "usuarios", item.id)
-
+                var email=payload.requireString("email", "usuarios", item.id)
                 toUpsert += UsuarioEntity(
                     id = id,
                     nombre = nombre,
+                    email = email,
                     rol = rol,
                     activo = payload.booleanOrDefault("activo", true),
                     fechaRegistro = payload.longOrNull("fechaRegistro") ?: item.updatedAt,
@@ -1178,11 +1179,10 @@ class SyncManager(
             addProperty("nombre", nombre)
             addProperty("grupoMuscular", grupoMuscular)
             addProperty("descripcion", descripcion)
-            if (idCreador != null) addProperty("idCreador", idCreador)
             addProperty("imageUrl", imageUrl)
             addProperty("colorHex", colorHex)
             addProperty("icono", icono)
-            addProperty("deletedAt", deletedAt)
+            // idCreador y deletedAt SE OMITEN según SYNC_API_SPEC.md
         }
         return SyncPushItemDto(
             entityType = "ejercicios",

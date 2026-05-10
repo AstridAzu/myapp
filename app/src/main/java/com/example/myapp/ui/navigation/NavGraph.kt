@@ -81,11 +81,17 @@ fun NavGraph(
             RegisterScreen(navController, vm)
         }
         composable(Routes.Main.route) {
+            // Leer el ID del usuario cada vez que se navega a esta ruta (no usar la variable guardada del init)
+            val currentSessionUserIdString = sessionManager.getUserIdString().trim()
             val mainFactory = ViewModelFactory(
                 context,
-                idUsuarioString = sessionUserIdString
+                idUsuarioString = currentSessionUserIdString
             )
-            val vm: MainViewModel = viewModel(factory = mainFactory)
+            // Usar key para forzar que se cree un nuevo ViewModel cuando el ID cambia
+            val vm: MainViewModel = viewModel(
+                factory = mainFactory,
+                key = "MainViewModel_$currentSessionUserIdString"
+            )
             MainScreen(
                 navController = navController,
                 viewModel = vm,
@@ -130,14 +136,32 @@ fun NavGraph(
         }
 
         composable(Routes.DetalleTrainer.route) { backStackEntry ->
-            val trainerIdRaw = backStackEntry.arguments?.getString("trainerId")
-            val alumnoIdRaw = backStackEntry.arguments?.getString("alumnoId")
+
+            val trainerId =
+                backStackEntry.arguments
+                    ?.getString("trainerId")
+                    ?.trim()
+                    .orEmpty()
+
+            val alumnoId =
+                backStackEntry.arguments
+                    ?.getString("alumnoId")
+                    ?.trim()
+                    .orEmpty()
+                    .ifBlank { sessionUserIdString }
+
             val detalleFactory = ViewModelFactory(
                 context,
-                idUsuarioString = alumnoIdRaw?.trim().orEmpty().ifBlank { sessionUserIdString },
-                idExtraString = trainerIdRaw
+                idUsuarioString = alumnoId,
+                idExtraString = trainerId
             )
-            val vm: TrainerDetalleViewModel = viewModel(factory = detalleFactory)
+
+            val vm: TrainerDetalleViewModel =
+                viewModel(
+                    factory = detalleFactory,
+                    key = "TrainerDetalle_$trainerId"
+                )
+
             TrainerDetalleScreen(navController, vm)
         }
 

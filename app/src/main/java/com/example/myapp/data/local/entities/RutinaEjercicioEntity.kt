@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 
+import com.example.myapp.data.remote.sync.SyncApiFactory
+
 @Entity(
     tableName = "rutina_ejercicios",
     primaryKeys = ["idRutina", "idEjercicio"],
@@ -35,7 +37,7 @@ data class RutinaEjercicioEntity(
     val reps: Int,
     val orden: Int,
     val notas: String? = null,
-    val updatedAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = 0L,
     val syncStatus: String = "SYNCED",
     val deletedAt: Long? = null
 )

@@ -24,7 +24,7 @@ import com.example.myapp.ui.theme.CategoryCardColor
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 // El color e ícono vienen de la DB (colorHex / icono en RutinaEntity).
-// colorHexToColor e iconoKeyToVector proveen fallbacks si son null.
+// colorHexToColor e iconoKeyToFuente proveen fallbacks si son null.
 // ─── screen ───────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,7 +244,7 @@ private fun SectionHeader(title: String) {
 @Composable
 private fun PresetRutinaCard(rutina: RutinaEntity, onClick: () -> Unit) {
     val accentColor = colorHexToColor(rutina.colorHex)
-    val icono       = iconoKeyToVector(rutina.icono)
+    val icono       = iconoKeyToFuente(rutina.icono)
 
     Card(
         onClick   = onClick,
@@ -284,8 +284,8 @@ private fun PresetRutinaCard(rutina: RutinaEntity, onClick: () -> Unit) {
                 }
             }
             // Ícono del tipo de rutina
-            Icon(
-                imageVector        = icono,
+            IconoIcon(
+                fuente             = icono,
                 contentDescription = null,
                 tint               = accentColor.copy(alpha = 0.8f),
                 modifier           = Modifier
@@ -300,7 +300,7 @@ private fun PresetRutinaCard(rutina: RutinaEntity, onClick: () -> Unit) {
 @Composable
 private fun RutinaCard(rutina: RutinaEntity, onClick: () -> Unit, onDelete: () -> Unit) {
     val accentColor = colorHexToColor(rutina.colorHex)
-    val icono       = iconoKeyToVector(rutina.icono)
+    val icono       = iconoKeyToFuente(rutina.icono)
     var showConfirm by remember { mutableStateOf(false) }
 
     if (showConfirm) {
@@ -372,8 +372,8 @@ private fun RutinaCard(rutina: RutinaEntity, onClick: () -> Unit, onDelete: () -
                     }
                 }
             }
-            Icon(
-                imageVector        = icono,
+            IconoIcon(
+                fuente             = icono,
                 contentDescription = null,
                 tint               = accentColor.copy(alpha = 0.8f),
                 modifier           = Modifier.size(32.dp)

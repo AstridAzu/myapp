@@ -52,7 +52,7 @@ class TrainerDetalleViewModel(
                 }
 
                 val usuario = entrenadorRepository.getUsuarioById(trainerId)
-                if (usuario == null || usuario.rol != "ENTRENADOR" || !usuario.activo) {
+                if (usuario == null || usuario.rol.trim().uppercase() != "ENTRENADOR" || !usuario.activo) {
                     _errorMessage.value = "No se encontro el entrenador"
                     _trainer.value = null
                     _especialidades.value = emptyList()

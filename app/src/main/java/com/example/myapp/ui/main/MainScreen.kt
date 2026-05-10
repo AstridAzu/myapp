@@ -31,10 +31,16 @@ import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import com.example.myapp.utils.SessionManager
 import kotlinx.coroutines.launch
-
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
+sealed class CategoryIcon {
+    data class Vector(val imageVector: ImageVector) : CategoryIcon()
+    data class Resource(val resId: Int) : CategoryIcon()
+}
 data class CategoryItem(
     val title: String,
-    val icon: ImageVector
+    val icon: CategoryIcon
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,18 +57,21 @@ fun MainScreen(
     val sessionUserId = remember { sessionManager.getUserIdString().trim() }
     val userId = viewModel.idUsuario.trim().ifBlank { sessionUserId }
     val nombreUsuario by viewModel.nombreUsuario.collectAsState()
+    val fotoUrl by viewModel.fotoUrl.collectAsState()
+
+    // Removed the LaunchedEffect block that called reloadUserName()
 
     // Colores basados en la imagen
     val backgroundColor = Color(0xFFE8F0FE)
     val cardBackgroundColor = Color(0xFF64B5F6)
 
     val categories = listOf(
-        CategoryItem("Rutinas", Icons.Default.FitnessCenter),
-        CategoryItem("Meta Fit", Icons.Default.MonitorHeart),
-        CategoryItem("Ejercicios", Icons.Default.DirectionsRun),
-        CategoryItem("Mis Planes", Icons.Default.CalendarMonth),
-        CategoryItem("Trainers", Icons.Default.FitnessCenter),
-        CategoryItem("Seguimiento", Icons.Default.Groups)
+        CategoryItem("Rutinas", CategoryIcon.Resource(R.drawable.rutinas_1)),
+        CategoryItem("Meta Fit",  CategoryIcon.Resource(R.drawable.metafit)),
+        CategoryItem("Ejercicios",  CategoryIcon.Resource(R.drawable.ejercicios)),
+        CategoryItem("Mis Planes",  CategoryIcon.Resource(R.drawable.misplanes)),
+        CategoryItem("Trainers",  CategoryIcon.Resource(R.drawable.trainer_1)),
+        CategoryItem("Seguimiento", CategoryIcon.Resource(R.drawable.seguimiento_1))
     )
 
     ModalNavigationDrawer(
@@ -137,13 +146,27 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Icono de ratita gimnasta (placeholder con el logo)
-                Image(
-                    painter = painterResource(id = R.drawable.ratitagym),
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                )
+                if (fotoUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(fotoUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Foto de perfil",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.ratitagym),
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                    )
+                }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -235,7 +258,10 @@ fun MainScreen(
 }
 
 @Composable
-fun CategoryCardUi(category: CategoryItem, onClick: () -> Unit) {
+fun CategoryCardUi(
+    category: CategoryItem,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -243,22 +269,40 @@ fun CategoryCardUi(category: CategoryItem, onClick: () -> Unit) {
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() }
     ) {
+
         Surface(
-            modifier = Modifier
-                .size(70.dp),
+            modifier = Modifier.size(70.dp),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF4FC3F7) // Azul más claro para el fondo de los items
+            color = Color(0xFF4FC3F7)
         ) {
+
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = category.icon,
-                    contentDescription = category.title,
-                    modifier = Modifier.size(36.dp),
-                    tint = Color.White
-                )
+
+                when (val icon = category.icon) {
+
+                    is CategoryIcon.Vector -> {
+                        Icon(
+                            imageVector = icon.imageVector,
+                            contentDescription = category.title,
+                            modifier = Modifier.size(36.dp),
+                            tint = Color.White
+                        )
+                    }
+
+                    is CategoryIcon.Resource -> {
+                        Icon(
+                            painter = painterResource(id = icon.resId),
+                            contentDescription = category.title,
+                            modifier = Modifier.size(36.dp),
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = category.title,
             fontSize = 11.sp,
@@ -267,4 +311,3 @@ fun CategoryCardUi(category: CategoryItem, onClick: () -> Unit) {
         )
     }
 }
-

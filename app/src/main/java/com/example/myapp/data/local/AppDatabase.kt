@@ -27,7 +27,7 @@ import com.example.myapp.data.local.entities.*
         NotificacionEntity::class,
         SyncCursorEntity::class
     ],
-    version = 25,
+    version = 28,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

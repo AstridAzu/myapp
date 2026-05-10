@@ -40,15 +40,13 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
     )
 
     /**
-     * Obtiene el userId para sincronizar ejercicios base (idCreador=NULL).
-     * Para ejercicios base, usa el sessionUserId actual; para personales, usa idCreador.
+     * Obtiene el userId para el header x-user-id del sync.
+     * SIEMPRE devuelve el usuario actual (quien está haciendo el cambio).
+     * El idCreador del ejercicio se envía en el payload, no en el header.
      */
     private suspend fun getEffectiveUserIdForSync(idCreador: String?): String {
-        return if (idCreador.isNullOrBlank()) {
-            sessionManager.getUserIdString()
-        } else {
-            idCreador
-        }
+        // El header x-user-id SIEMPRE es el usuario actual, no el creador del ejercicio
+        return sessionManager.getUserIdString()
     }
 
     init {
@@ -215,7 +213,7 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
             idEjercicioFinal = agregarBaseAMisEjercicios(entity.idEjercicio, idPropietarioRutina)
         }
 
-        val now = System.currentTimeMillis()
+        val now = SyncApiFactory.getServerTime()
         val pendingEntity = entity.copy(
             idEjercicio = idEjercicioFinal,
             updatedAt = now,
@@ -233,7 +231,7 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
     }
 
     suspend fun eliminarEjercicioDeRutina(idRutina: String, idEjercicio: String) {
-        val now = System.currentTimeMillis()
+        val now = SyncApiFactory.getServerTime()
         val deletedEntity = RutinaEjercicioEntity(
             idRutina = idRutina,
             idEjercicio = idEjercicio,
@@ -273,7 +271,7 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
             return
         }
         
-        val now = System.currentTimeMillis()
+        val now = SyncApiFactory.getServerTime()
         
         // Marcar localmente como DELETED primero
         rutinaDao.softDelete(
@@ -436,6 +434,13 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
     ) {
         val existente = ejercicioDao.getEjercicioById(id)
             ?: throw IllegalStateException("Ejercicio no encontrado")
+        
+        Log.i("ActualizarEjercicio", "════════════════════════════════════════════════════")
+        Log.i("ActualizarEjercicio", "Ejercicio actual en BD:")
+        Log.i("ActualizarEjercicio", "  id=$id")
+        Log.i("ActualizarEjercicio", "  nombre=${existente.nombre}")
+        Log.i("ActualizarEjercicio", "  idCreador=${existente.idCreador} (NULL? ${existente.idCreador == null}, BLANK? ${existente.idCreador.isNullOrBlank()})")
+        
         val now = System.currentTimeMillis()
         val updated = existente.copy(
             nombre = nombre.trim(),
@@ -444,9 +449,13 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
             colorHex = colorHex,
             icono = icono,
             imageUrl = imageUrl ?: existente.imageUrl,
-            updatedAt = now,
+            updatedAt = now + 1000, // Forzamos 1s adelante para evitar colisiones de timestamp con el pull anterior
             syncStatus = "PENDING"
         )
+        Log.i("ActualizarEjercicio", "Ejercicio actualizado para push (FORCED TIMESTAMP):")
+        Log.i("ActualizarEjercicio", "  idCreador=${updated.idCreador}")
+        Log.i("ActualizarEjercicio", "  updatedAt=${updated.updatedAt}")
+        
         val effectiveUserId = getEffectiveUserIdForSync(updated.idCreador)
         val pushSuccess = CloudPushHelper.pushItemsCloudFirst(
             items = listOf(updated.toPushDto()),
@@ -461,7 +470,8 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
             icono = icono,
             imageUrl = imageUrl ?: existente.imageUrl
         )
-        ejercicioDao.markSyncState(id, if (pushSuccess) "SYNCED" else "PENDING", now)
+        // Guardamos con el timestamp futuro para que el pull posterior no lo sobreescriba si el servidor lo aceptó
+        ejercicioDao.markSyncState(id, if (pushSuccess) "SYNCED" else "PENDING", updated.updatedAt)
         if (!pushSuccess) SyncRuntimeDispatcher.requestSyncNow()
     }
 
@@ -501,25 +511,57 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
         data: ByteArray
     ): ExerciseImageResult {
         val presigned = exerciseImageApi.createPresignedUpload(idEjercicio, fileName, contentType, data.size.toLong())
+        Log.i("ImageSync", "[1] Presigned upload creado: ${presigned.objectKey}")
+        
         exerciseImageApi.uploadBinary(presigned.uploadUrl, contentType, data)
+        Log.i("ImageSync", "[2] Imagen subida a R2: ${data.size} bytes")
+        
         val confirmed = exerciseImageApi.confirmUpload(idEjercicio, presigned.objectKey)
+        Log.i("ImageSync", "[3] Upload confirmado. PublicUrl: ${confirmed.publicUrl}")
         
         val ejercicio = ejercicioDao.getEjercicioById(idEjercicio)
             ?: return confirmed
         val now = System.currentTimeMillis()
+        
+        // Si es un ejercicio base (idCreador=null), asignar al usuario admin actual
+        val idCreadorParaPush = if (ejercicio.idCreador.isNullOrBlank()) {
+            sessionManager.getUserIdString()
+        } else {
+            ejercicio.idCreador
+        }
+        
         val updated = ejercicio.copy(
             imageUrl = confirmed.publicUrl,
+            idCreador = idCreadorParaPush,  // ← Actualizar con el UUID del usuario
             updatedAt = now,
             syncStatus = "PENDING"
         )
+        
+        Log.i("ImageSync", """[4] Ejercicio actualizado localmente:
+            |  id=${updated.id}
+            |  nombre=${updated.nombre}
+            |  idCreador=${updated.idCreador}
+            |  imageUrl=${updated.imageUrl}
+            |  syncStatus=${updated.syncStatus}
+        """.trimMargin())
+        
         val effectiveUserId = getEffectiveUserIdForSync(ejercicio.idCreador)
+        Log.i("ImageSync", "[5] EffectiveUserId para push: $effectiveUserId (idCreador=${ejercicio.idCreador})")
+        
         val pushSuccess = CloudPushHelper.pushItemsCloudFirst(
             items = listOf(updated.toPushDto()),
             preferredUserId = effectiveUserId
         )
+        Log.i("ImageSync", "[6] Push al servidor: pushSuccess=$pushSuccess")
+        
         ejercicioDao.updateImageUrl(idEjercicio, confirmed.publicUrl)
         ejercicioDao.markSyncState(idEjercicio, if (pushSuccess) "SYNCED" else "PENDING", now)
-        if (!pushSuccess) SyncRuntimeDispatcher.requestSyncNow()
+        Log.i("ImageSync", "[7] BD local actualizada con syncStatus=${if (pushSuccess) "SYNCED" else "PENDING"}")
+        
+        if (!pushSuccess) {
+            Log.w("ImageSync", "[8] Push falló. Solicitando sync manual...")
+            SyncRuntimeDispatcher.requestSyncNow()
+        }
         return confirmed
     }
 
@@ -529,8 +571,17 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
         val ejercicio = ejercicioDao.getEjercicioById(idEjercicio)
             ?: return confirmed
         val now = System.currentTimeMillis()
+        
+        // Si es un ejercicio base (idCreador=null), asignar al usuario admin actual
+        val idCreadorParaPush = if (ejercicio.idCreador.isNullOrBlank()) {
+            sessionManager.getUserIdString()
+        } else {
+            ejercicio.idCreador
+        }
+        
         val updated = ejercicio.copy(
             imageUrl = confirmed.publicUrl,
+            idCreador = idCreadorParaPush,  // ← Actualizar con el UUID del usuario
             updatedAt = now,
             syncStatus = "PENDING"
         )
@@ -553,8 +604,17 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
         val ejercicio = ejercicioDao.getEjercicioById(idEjercicio)
             ?: return
         val now = System.currentTimeMillis()
+        
+        // Si es un ejercicio base (idCreador=null), asignar al usuario admin actual
+        val idCreadorParaPush = if (ejercicio.idCreador.isNullOrBlank()) {
+            sessionManager.getUserIdString()
+        } else {
+            ejercicio.idCreador
+        }
+        
         val updated = ejercicio.copy(
             imageUrl = null,
+            idCreador = idCreadorParaPush,  // ← Actualizar con el UUID del usuario
             updatedAt = now,
             syncStatus = "PENDING"
         )
@@ -592,9 +652,19 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
             syncStatus = "PENDING",
             deletedAt = null
         )
-        val ejerciciosNuevos = rutinaDao.getRutinaEjerciciosRaw(idRutinaOrigen).map {
-            it.copy(
+        // Al clonar, los ejercicios base (idCreador == null) deben copiarse como propios
+        // para evitar que se pierdan cuando BaseExercisesSyncManager borre y reinserte
+        // los ejercicios base (DELETE CASCADE en rutina_ejercicios).
+        val ejerciciosNuevos = rutinaDao.getRutinaEjerciciosRaw(idRutinaOrigen).map { link ->
+            val ejercicioBase = ejercicioDao.getEjercicioById(link.idEjercicio)
+            val idEjercicioFinal = if (ejercicioBase?.idCreador == null) {
+                agregarBaseAMisEjercicios(link.idEjercicio, idUsuario)
+            } else {
+                link.idEjercicio
+            }
+            link.copy(
                 idRutina = nueva.id,
+                idEjercicio = idEjercicioFinal,
                 updatedAt = now,
                 syncStatus = "PENDING",
                 deletedAt = null
@@ -627,12 +697,11 @@ class RutinaRepository(private val database: AppDatabase, private val sessionMan
         val payload = JsonObject().apply {
             addProperty("nombre", nombre)
             addProperty("grupoMuscular", grupoMuscular)
-            addProperty("idCreador", idCreador)
             addProperty("descripcion", descripcion)
             addProperty("imageUrl", imageUrl)
             addProperty("colorHex", colorHex)
             addProperty("icono", icono)
-            addProperty("deletedAt", deletedAt)
+            // idCreador y deletedAt SE OMITEN según SYNC_API_SPEC.md
         }
         return SyncPushItemDto(
             entityType = "ejercicios",

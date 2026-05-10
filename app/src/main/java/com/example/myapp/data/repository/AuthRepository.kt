@@ -14,6 +14,7 @@ import com.example.myapp.data.remote.auth.AuthApiFactory
 import com.example.myapp.data.remote.auth.LoginRequestDto
 import com.example.myapp.data.remote.auth.RegisterRequestDto
 import android.util.Log
+import retrofit2.HttpException
 
 class AuthRepository(
     private val database: AppDatabase,
@@ -30,7 +31,6 @@ class AuthRepository(
 
     suspend fun loginWithEmail(email: String, password: String): Result<Usuario> {
         return try {
-            Log.d("AuthRepository", "Realizando login remoto...")
             val apiResponse = authApi.login(LoginRequestDto(email, password))
             
             if (!apiResponse.success) {
@@ -40,11 +40,19 @@ class AuthRepository(
             
             val userDto = apiResponse.result.user
             
-            // Convertir id de Int a String
-            val userIdString = userDto.id.toString()
+            // El id ya es UUID (String) desde el servidor
+            val userIdString = userDto.id
+            
+            Log.i("AuthRepository", "═══════════════════════════════════════════════════════")
+            Log.i("AuthRepository", "✅ LOGIN EXITOSO")
+            Log.i("AuthRepository", "   Email: ${userDto.nombre}")
+            Log.i("AuthRepository", "   Rol desde servidor: ${userDto.rol}")
+            Log.i("AuthRepository", "   ID/UUID desde servidor: $userIdString")
             
             // Mapear rol del Worker (TRAINER -> ENTRENADOR, ALUMNO -> ALUMNO, etc)
             val rolMapeado = mapearRolDelWorker(userDto.rol)
+            
+            Log.i("AuthRepository", "   Rol mapeado: $rolMapeado")
             
             // Convertir timestamp de segundos a milisegundos
             val fechaRegistroMs = userDto.fechaRegistro * 1000
@@ -54,6 +62,7 @@ class AuthRepository(
             val userEntity = UsuarioEntity(
                 id = userIdString,
                 nombre = userDto.nombre,
+                email = userDto.email,
                 rol = rolMapeado,
                 activo = userDto.activo,
                 fechaRegistro = fechaRegistroMs,
@@ -67,11 +76,34 @@ class AuthRepository(
             val idLocal = usuarioDao.getUserById(userEntity.id)
             if (idLocal == null) {
                 usuarioDao.insertIgnore(userEntity)
+                Log.i("AuthRepository", "   ✓ Nuevo usuario insertado en BD local")
             } else {
                 usuarioDao.update(userEntity)
+                Log.i("AuthRepository", "   ✓ Usuario actualizado en BD local")
+            }
+            
+            // Verificación: intentar recuperar el usuario de la BD para confirmar que se guardó
+            val usuarioVerificacion = usuarioDao.getUserById(userEntity.id)
+            if (usuarioVerificacion != null) {
+                Log.i("AuthRepository", "   ✓✓ VERIFICACIÓN: Usuario encontrado en BD tras guardar")
+                Log.i("AuthRepository", "      Nombre en BD: '${usuarioVerificacion.nombre}'")
+            } else {
+                Log.w("AuthRepository", "   ⚠⚠ VERIFICACIÓN: Usuario NO encontrado en BD tras guardar (¡¡¡PROBLEMA!!!)")
             }
 
-            sessionManager.saveSession(userEntity.id, userEntity.rol)
+            val rawToken = apiResponse.result.token
+            // Limpiar el token de cualquier prefijo "Bearer " antes de guardarlo
+            val cleanedToken = rawToken?.removePrefix("Bearer ")
+            Log.i("AuthRepository", "   Token recibido del servidor: ${if (rawToken != null) rawToken.take(15) + "..." else "❌ NULL"}")
+            Log.i("AuthRepository", "   Token limpio a guardar: ${if (cleanedToken != null) cleanedToken.take(15) + "..." else "❌ NULL"}")
+            
+            sessionManager.saveSession(userEntity.id, userEntity.rol, cleanedToken)
+            Log.i("AuthRepository", "   SessionManager.saveSession() completado")
+            Log.i("AuthRepository", "   SessionManager.getAuthToken() persistido: ${if (sessionManager.getAuthToken() != null) "✓ SÍ" else "❌ NO"}")
+            Log.i("AuthRepository", "   SessionManager.getUserIdString() = ${sessionManager.getUserIdString()}")
+            Log.i("AuthRepository", "   SessionManager.getUserRol() = ${sessionManager.getUserRol()}")
+            Log.i("AuthRepository", "═══════════════════════════════════════════════════════")
+            
             Result.success(userEntity.toDomain())
             
         } catch (e: Exception) {
@@ -96,16 +128,73 @@ class AuthRepository(
 
     suspend fun register(nombre: String, email: String, password: String): Result<String> {
         return try {
-            Log.d("AuthRepository", "Realizando registro remoto...")
-            val response = authApi.register(RegisterRequestDto(nombre, email, password))
+            Log.d("AuthRepository", "Iniciando registro para: $email")
+            val response = authApi.register(RegisterRequestDto(email, password, nombre))
             
-            if (response.success) {
+            if (response.success && response.result != null) {
+                val userDto = response.result.user
+                
+                // Mapear rol del Worker
+                val rolMapeado = mapearRolDelWorker(userDto.rol)
+                
+                // Convertir timestamp de segundos a milisegundos
+                val fechaRegistroMs = userDto.fechaRegistro * 1000
+                
+                // Guardar usuario en BD local
+                val userEntity = UsuarioEntity(
+                    id = userDto.id,
+                    nombre = userDto.nombre,
+                    rol = rolMapeado,
+                    activo = userDto.activo,
+                    email = userDto.email,
+                    fechaRegistro = fechaRegistroMs,
+                    updatedAt = System.currentTimeMillis(),
+                    syncStatus = "SYNCED",
+                    deletedAt = null
+                )
+                
+                val idLocal = usuarioDao.getUserById(userEntity.id)
+                if (idLocal == null) {
+                    usuarioDao.insertIgnore(userEntity)
+                    Log.i("AuthRepository", "   ✓ Nuevo usuario insertado en BD local durante registro")
+                } else {
+                    usuarioDao.update(userEntity)
+                    Log.i("AuthRepository", "   ✓ Usuario actualizado en BD local durante registro")
+                }
+                
+                // Verificación: intentar recuperar el usuario de la BD para confirmar que se guardó
+                val usuarioVerificacion = usuarioDao.getUserById(userEntity.id)
+                if (usuarioVerificacion != null) {
+                    Log.i("AuthRepository", "   ✓✓ VERIFICACIÓN REGISTRO: Usuario encontrado en BD tras guardar")
+                    Log.i("AuthRepository", "      Nombre en BD: '${usuarioVerificacion.nombre}'")
+                } else {
+                    Log.w("AuthRepository", "   ⚠⚠ VERIFICACIÓN REGISTRO: Usuario NO encontrado en BD tras guardar (¡¡¡PROBLEMA!!!)")
+                }
+                
+                val rawToken = response.result.token
+                // Limpiar el token de cualquier prefijo "Bearer " antes de guardarlo
+                val cleanedToken = rawToken?.removePrefix("Bearer ")
+                sessionManager.saveSession(userEntity.id, userEntity.rol, cleanedToken)
+                
+                Log.d("AuthRepository", "Registro exitoso para usuario: ${userDto.email}")
                 Result.success("Registro exitoso")
             } else {
                 val errorMsg = response.message ?: "Error desconocido en el registro"
                 Log.e("AuthRepository", "Error registro: $errorMsg")
                 Result.failure(Exception(errorMsg))
             }
+        } catch (httpException: HttpException) {
+            val errorCode = httpException.code()
+            val errorBody = httpException.response()?.errorBody()?.string() ?: "Sin cuerpo de error"
+            Log.e("AuthRepository", "Error HTTP $errorCode en registro: $errorBody", httpException)
+            
+            val mensajeError = when {
+                errorCode == 400 -> "Datos inválidos: verifica email, contraseña y nombre"
+                errorCode == 409 -> "El email ya está registrado"
+                errorCode == 500 -> "Error del servidor. Intenta más tarde"
+                else -> "Error HTTP $errorCode"
+            }
+            Result.failure(Exception(mensajeError))
         } catch (e: Exception) {
             Log.e("AuthRepository", "Excepción en registro: ${e.message}", e)
             Result.failure(Exception("Error de conexión al registrar usuario. Inténtalo de nuevo."))

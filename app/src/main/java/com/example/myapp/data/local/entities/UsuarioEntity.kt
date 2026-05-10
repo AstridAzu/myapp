@@ -15,8 +15,10 @@ import java.util.UUID
 data class UsuarioEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val nombre: String,
+    val email: String,
     val rol: String, // "ENTRENADOR", "ALUMNO"
     val activo: Boolean = true,
+    val fotoUrl: String? = null,
     val fechaRegistro: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "SYNCED",

@@ -2,6 +2,7 @@ package com.example.myapp.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 
 class SessionManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("atlas_session", Context.MODE_PRIVATE)
@@ -10,21 +11,37 @@ class SessionManager(context: Context) {
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USER_ID_UUID = "user_id_uuid"
         private const val KEY_USER_ROL = "user_rol"
+        private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_BASE_EXERCISES_SYNC_TIME = "base_exercises_sync_time"
         private const val KEY_BASE_ROUTINES_SYNC_TIME = "base_routines_sync_time"
     }
 
-    fun saveSession(userId: String, rol: String) {
+    fun saveSession(userId: String, rol: String, token: String? = null) {
         val normalizedUserId = userId.trim()
         val editor = prefs.edit()
         editor.putString(KEY_USER_ID_UUID, normalizedUserId)
+        
+        Log.i("SessionManager", "═══════════════════════════════════════════════════════")
+        Log.i("SessionManager", "💾 saveSession() llamado")
+        Log.i("SessionManager", "   userId recibido: '$userId'")
+        Log.i("SessionManager", "   userId normalizado: '$normalizedUserId'")
+        Log.i("SessionManager", "   rol: '$rol'")
+        Log.i("SessionManager", "   token presente: ${token != null}")
+        
         normalizedUserId.toLongOrNull()?.let { legacyLongId ->
             editor.putLong(KEY_USER_ID, legacyLongId)
         } ?: editor.remove(KEY_USER_ID)
+        
         editor.putString(KEY_USER_ROL, rol)
+        if (token != null) {
+            editor.putString(KEY_AUTH_TOKEN, token)
+        }
         editor.putBoolean(KEY_IS_LOGGED_IN, true)
         editor.apply()
+        
+        Log.i("SessionManager", "   Guardado en SharedPreferences")
+        Log.i("SessionManager", "═══════════════════════════════════════════════════════")
     }
 
     @Deprecated("Use getUserIdString() for UUID-first flows")
@@ -35,6 +52,9 @@ class SessionManager(context: Context) {
     }
 
     fun getUserRol(): String? = prefs.getString(KEY_USER_ROL, null)
+
+    fun getAuthToken(): String? = prefs.getString(KEY_AUTH_TOKEN, null)
+
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
     fun logout() {

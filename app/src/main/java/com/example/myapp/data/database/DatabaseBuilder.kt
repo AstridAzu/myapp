@@ -1,6 +1,7 @@
 package com.example.myapp.data.database
 
 import android.content.Context
+import android.provider.ContactsContract
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
@@ -792,6 +793,12 @@ object DatabaseBuilder {
         }
     }
 
+    private val MIGRATION_25_26 = object : Migration(25, 26) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE usuarios ADD COLUMN fotoUrl TEXT")
+        }
+    }
+
     fun getDatabase(context: Context): AppDatabase {
         return INSTANCE ?: synchronized(this) {
             val instance = Room.databaseBuilder(
@@ -832,52 +839,14 @@ object DatabaseBuilder {
                     MIGRATION_18_19,
                     MIGRATION_21_22,
                     MIGRATION_22_23,
-                    MIGRATION_23_24
+                    MIGRATION_23_24,
+                    MIGRATION_25_26
                 )
                 .fallbackToDestructiveMigration()
                 .build()
             INSTANCE = instance
             instance
         }
-    }
-
-    private suspend fun seedUsuariosTest(database: AppDatabase) {
-        val dao = database.usuarioDao()
-        // Usuarios de prueba — solo para desarrollo.
-        // Si ya existen, se corrige el rol/nombre para mantener consistencia del entorno.
-        val entrenadorExistente = dao.getUserById(TEST_ENTRENADOR_ID)
-        if (entrenadorExistente == null) {
-            dao.insertIgnore(
-                UsuarioEntity(
-                    id = TEST_ENTRENADOR_ID,
-                    nombre = "Test Entrenador",
-                    rol = "ENTRENADOR"
-                )
-            )
-        } else if (entrenadorExistente.rol != "ENTRENADOR" || entrenadorExistente.nombre != "Test Entrenador") {
-            dao.update(
-                entrenadorExistente.copy(
-                    nombre = "Test Entrenador",
-                    rol = "ENTRENADOR"
-                )
-            )
-        }
-
-        dao.insertIgnore(
-            UsuarioEntity(
-                id = TEST_ALUMNO_ID,
-                nombre = "Test Alumno",
-                rol = "ALUMNO"
-            )
-        )
-
-        dao.insertIgnore(
-            UsuarioEntity(
-                id = TEST_USUARIO_ID,
-                nombre = "Usuario Normal",
-                rol = "ALUMNO"
-            )
-        )
     }
 
 

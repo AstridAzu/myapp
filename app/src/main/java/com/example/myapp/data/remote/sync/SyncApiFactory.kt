@@ -8,6 +8,19 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object SyncApiFactory {
+    private var serverTimeOffset: Long = 0
+
+    fun updateServerTime(dateStr: String?) {
+        dateStr?.let {
+            try {
+                val serverDate = java.util.Date(it)
+                serverTimeOffset = serverDate.time - System.currentTimeMillis()
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun getServerTime(): Long = System.currentTimeMillis() + serverTimeOffset
+
     fun create(baseUrl: String, bearerToken: String? = null, userId: String? = null): SyncApi {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -22,7 +35,13 @@ object SyncApiFactory {
             if (!userId.isNullOrBlank()) {
                 requestBuilder.header("x-user-id", userId)
             }
-            chain.proceed(requestBuilder.build())
+            
+            val response = chain.proceed(requestBuilder.build())
+            
+            // Sincronización de reloj con el servidor mediante el header "Date"
+            updateServerTime(response.header("Date"))
+            
+            response
         }
 
         val client = OkHttpClient.Builder()

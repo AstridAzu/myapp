@@ -42,7 +42,8 @@ import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.components.AppTopBarAction
 import com.example.myapp.ui.navigation.Routes
 import com.example.myapp.ui.rutinas.colorHexToColor
-import com.example.myapp.ui.rutinas.iconoKeyToVector
+import com.example.myapp.ui.rutinas.IconoIcon
+import com.example.myapp.ui.rutinas.iconoKeyToFuente
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -338,10 +339,10 @@ private fun DiaDetalleCard(
                 }
 
                 if (dia.tipo == "RUTINA") {
-                    val icono = iconoKeyToVector(rutina?.icono)
+                    val icono = iconoKeyToFuente(rutina?.icono)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(
-                            imageVector = icono,
+                        IconoIcon(
+                            fuente = icono,
                             contentDescription = null,
                             tint = accent
                         )

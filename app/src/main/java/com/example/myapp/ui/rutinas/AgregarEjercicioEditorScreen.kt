@@ -288,8 +288,8 @@ fun AgregarEjercicioEditorScreen(
                             onClick = { if (canEditCatalogFields) viewModel.onIconoChange(opcion.key) },
                             label = { Text(opcion.label) },
                             leadingIcon = {
-                                Icon(
-                                    imageVector = opcion.vector,
+                                IconoIcon(
+                                    fuente = opcion.fuente,
                                     contentDescription = opcion.label,
                                     modifier = Modifier.size(18.dp)
                                 )

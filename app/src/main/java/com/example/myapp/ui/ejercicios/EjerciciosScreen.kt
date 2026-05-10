@@ -58,7 +58,8 @@ import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import com.example.myapp.ui.rutinas.EjercicioImagen
 import com.example.myapp.ui.rutinas.colorHexToColor
-import com.example.myapp.ui.rutinas.iconoKeyToVector
+import com.example.myapp.ui.rutinas.IconoIcon
+import com.example.myapp.ui.rutinas.iconoKeyToFuente
 import kotlinx.coroutines.flow.collectLatest
 
 private enum class FuenteFiltro {
@@ -349,8 +350,8 @@ private fun EjercicioSeccionItem(
 
         Spacer(modifier = Modifier.width(10.dp))
 
-        Icon(
-            imageVector = iconoKeyToVector(ejercicio.icono),
+        IconoIcon(
+            fuente = iconoKeyToFuente(ejercicio.icono),
             contentDescription = "Icono de ${ejercicio.nombre}",
             tint = colorGrupo,
             modifier = Modifier.size(22.dp)

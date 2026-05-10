@@ -21,11 +21,9 @@ class BaseRoutinesSyncManager(
         try {
             val rutinaDao = database.rutinaDao()
             
-            // LIMPIAR RUTINAS BASE VIEJAS (por si hay cambio de IDs o estructura)
+            // LIMPIAR RUTINAS BASE VIEJAS
             val deletedCount = rutinaDao.deleteAllBaseRoutines()
-            if (deletedCount > 0) {
-                Log.d(TAG, "Cleaned $deletedCount old base routines and their links (CASCADE)")
-            }
+            Log.d(TAG, "Cleaned $deletedCount old base routines")
             
             val envelope = api.getBaseRoutines(since = 0L, limit = 200)
             val response = envelope.result
@@ -33,6 +31,7 @@ class BaseRoutinesSyncManager(
             if (response.items.isNotEmpty()) {
                 val now = System.currentTimeMillis()
                 val entities = response.items.map { dto ->
+                    Log.d(TAG, "  Processing routine: id=${dto.id}, nombre=${dto.nombre}, idCreador=${dto.idCreador}")
                     RutinaEntity(
                         id = dto.id,
                         idCreador = SYSTEM_CREATOR_ID,
@@ -53,15 +52,19 @@ class BaseRoutinesSyncManager(
                 Log.d(TAG, "Synced ${entities.size} base routines")
             }
             
-            // Validar
+            // Validar que al menos haya ALGUNAS rutinas
             val finalCount = rutinaDao.countBaseRoutines()
             Log.d(TAG, "Base routines sync complete. Final count: $finalCount")
             
-            if (finalCount < EXPECTED_COUNT) {
-                Log.w(TAG, "WARNING: Expected $EXPECTED_COUNT base routines but got $finalCount")
+            if (finalCount == 0) {
+                Log.e(TAG, "ERROR: No base routines were synced!")
                 return@withContext Result.failure(
-                    IllegalStateException("Base routines incomplete: $finalCount/$EXPECTED_COUNT")
+                    IllegalStateException("No base routines synced")
                 )
+            }
+            
+            if (finalCount < EXPECTED_COUNT) {
+                Log.w(TAG, "WARNING: Expected $EXPECTED_COUNT base routines but got $finalCount (still syncing)")
             }
             
             Result.success(Unit)

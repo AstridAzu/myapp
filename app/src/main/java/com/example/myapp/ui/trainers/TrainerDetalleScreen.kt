@@ -35,10 +35,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import java.text.SimpleDateFormat
@@ -131,7 +136,7 @@ fun TrainerDetalleScreen(
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AvatarLarge(trainerInfo.nombre)
+                            TrainerAvatarLarge(nombre = trainerInfo.nombre, fotoUrl = trainerInfo.fotoUrl)
                             Column(modifier = Modifier.padding(start = 12.dp)) {
                                 Text(
                                     text = trainerInfo.nombre,
@@ -245,20 +250,35 @@ private fun SectionCard(
 }
 
 @Composable
-private fun AvatarLarge(nombre: String) {
-    val letter = nombre.trim().firstOrNull()?.uppercase() ?: "E"
-    Box(
-        modifier = Modifier
-            .size(64.dp)
-            .background(color = Color(0xFF0F766E), shape = CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = letter,
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+private fun TrainerAvatarLarge(nombre: String, fotoUrl: String?) {
+    val context = LocalContext.current
+    if (!fotoUrl.isNullOrBlank()) {
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(fotoUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Foto de $nombre",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
         )
+    } else {
+        val letter = nombre.trim().firstOrNull()?.uppercase() ?: "E"
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(color = Color(0xFF0F766E), shape = CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = letter,
+                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

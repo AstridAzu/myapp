@@ -28,14 +28,16 @@ class SyncWorker(
     }
 
     override suspend fun doWork(): ListenableWorker.Result {
+        val sessionManager = SessionManager(applicationContext)
         val syncBaseUrl = BuildConfig.SYNC_API_BASE_URL.trim()
-        val syncToken = BuildConfig.SYNC_API_TOKEN.trim()
-        val syncUserId = SessionManager(applicationContext).getUserIdString().trim()
+        val syncToken = sessionManager.getAuthToken()?.trim() ?: BuildConfig.SYNC_API_TOKEN.trim()
+        val syncUserId = sessionManager.getUserIdString().trim()
         
         if (BuildConfig.DEBUG) {
+            val isUserToken = sessionManager.getAuthToken() != null
             Log.d(
                 "ConfigCheck",
-                "SYNC_API_BASE_URL=$syncBaseUrl, SYNC_API_TOKEN configured=${syncToken.isNotBlank()}, x-user-id configured=${syncUserId.isNotBlank()}"
+                "SYNC_API_BASE_URL=$syncBaseUrl, TOKEN_SRC=${if (isUserToken) "USER" else "BUILD_CONFIG"}, x-user-id configured=${syncUserId.isNotBlank()}"
             )
         }
         
@@ -44,20 +46,18 @@ class SyncWorker(
         }
 
         val database = DatabaseBuilder.getDatabase(applicationContext)
-        val sessionManager = SessionManager(applicationContext)
         
         // ============================================================
         // SYNC BASE EXERCISES FIRST (if needed)
         // ============================================================
         try {
-            Log.d("SyncWorker", "Starting base exercises sync...")
             val exercisesApi = ExercisesApiFactory.create(syncBaseUrl)
             val baseExercisesMgr = BaseExercisesSyncManager(database, exercisesApi)
             
             val result = baseExercisesMgr.syncBaseExercises()
             result.fold(
                 onSuccess = {
-                    Log.d("SyncWorker", "✓ Base exercises synced successfully")
+                    // Log.d("SyncWorker", "✓ Base exercises synced successfully") // Eliminado
                     sessionManager.setLastBaseExercisesSyncTime(System.currentTimeMillis())
                 },
                 onFailure = { error ->
@@ -75,14 +75,13 @@ class SyncWorker(
         // ============================================================
         try {
             // Siempre sincronizar routinas base (se limpian automáticamente antes de insertar)
-            Log.d("SyncWorker", "Starting base routines sync...")
             val routinesApi = RoutinesApiFactory.create(syncBaseUrl)
             val baseRoutinesMgr = BaseRoutinesSyncManager(database, routinesApi)
             
             val result = baseRoutinesMgr.syncBaseRoutines()
             result.fold(
                 onSuccess = {
-                    Log.d("SyncWorker", "✓ Base routines synced successfully")
+                    // Log.d("SyncWorker", "✓ Base routines synced successfully") // Eliminado
                     sessionManager.setLastBaseRoutinesSyncTime(System.currentTimeMillis())
                 },
                 onFailure = { error ->
@@ -100,14 +99,13 @@ class SyncWorker(
         // ============================================================
         try {
             // Siempre sincronizar links (se limpian automáticamente antes de insertar)
-            Log.d("SyncWorker", "Starting base routine links sync...")
             val routinesApi = RoutinesApiFactory.create(syncBaseUrl)
             val baseRoutineLinksMgr = BaseRoutineLinksSyncManager(database, routinesApi)
             
             val result = baseRoutineLinksMgr.syncBaseRoutineLinks()
             result.fold(
                 onSuccess = {
-                    Log.d("SyncWorker", "✓ Base routine links synced successfully")
+                    // Log.d("SyncWorker", "✓ Base routine links synced successfully") // Eliminado
                     sessionManager.setLastBaseRoutinesSyncTime(System.currentTimeMillis())
                 },
                 onFailure = { error ->
@@ -133,12 +131,12 @@ class SyncWorker(
             return ListenableWorker.Result.success()
         }
 
-        // Log credentials for diagnostic purposes (sanitized token)
-        val tokenSuffix = syncToken.takeLast(8)
-        Log.d("SyncWorker", "Starting normal sync with credentials:")
-        Log.d("SyncWorker", "  - Authorization: Bearer ...${tokenSuffix}")
-        Log.d("SyncWorker", "  - x-user-id: $syncUserId")
-        Log.d("SyncWorker", "  - baseUrl: $syncBaseUrl")
+        // Log credentials for diagnostic purposes (sanitized token) - Eliminado, ya no es necesario aquí
+        val tokenSuffix = syncToken.takeLast(8) // Se mantiene para posible uso futuro, aunque el log fue eliminado
+        // Log.d("SyncWorker", "Starting normal sync with credentials:") // Eliminado
+        // Log.d("SyncWorker", "  - Authorization: Bearer ...${tokenSuffix}") // Eliminado
+        // Log.d("SyncWorker", "  - x-user-id: $syncUserId") // Eliminado
+        // Log.d("SyncWorker", "  - baseUrl: $syncBaseUrl") // Eliminado
 
         val syncApi = SyncApiFactory.create(
             baseUrl = syncBaseUrl,
@@ -155,7 +153,7 @@ class SyncWorker(
 
         return syncManager.syncAll().fold(
             onSuccess = { 
-                Log.i("SyncWorker", "✓ Normal sync completed successfully")
+                // Log.i("SyncWorker", "✓ Normal sync completed successfully") // Eliminado
                 ListenableWorker.Result.success() 
             },
             onFailure = { error ->

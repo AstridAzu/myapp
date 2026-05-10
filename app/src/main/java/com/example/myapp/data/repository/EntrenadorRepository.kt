@@ -7,6 +7,7 @@ import com.example.myapp.data.local.entities.CertificacionEntity
 import com.example.myapp.data.local.entities.EspecialidadEntity
 import com.example.myapp.data.local.entities.RutinaEntity
 import com.example.myapp.data.local.entities.UsuarioEntity
+import com.example.myapp.data.remote.sync.TrainerResponseDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -64,4 +65,58 @@ class EntrenadorRepository(private val database: AppDatabase, private val sessio
     /** Resumen agregado de progreso por plan para dashboard del entrenador. */
     fun getSeguimientoPlanes(idCreador: String): Flow<List<PlanSeguimientoRow>> =
         planRepository.getSeguimientoPlanesPorCreador(idCreador)
+    suspend fun guardarTrainerDesdeApi(dto: TrainerResponseDto) {
+
+        // ---------- Usuario ----------
+        usuarioDao.insertUser(
+            UsuarioEntity(
+                id = dto.id,
+                nombre = dto.nombre,
+                email = dto.email ?: "",
+                rol = "ENTRENADOR",
+                activo = dto.activo,
+                fotoUrl = dto.fotoUrl
+            )
+        )
+
+
+        // ---------- Especialidades ----------
+        val actualesEspecialidades =
+            especialidadDao.getEspecialidadesByUsuario(dto.id).first()
+
+        actualesEspecialidades.forEach {
+            especialidadDao.delete(it)
+        }
+
+        dto.especialidades.forEachIndexed { index, nombre ->
+            especialidadDao.insert(
+                EspecialidadEntity(
+                    id = "${dto.id}_esp_$index",
+                    idUsuario = dto.id,
+                    nombre = nombre.trim()
+                )
+            )
+        }
+
+        // ---------- Certificaciones ----------
+        val actualesCertificaciones =
+            certificacionDao.getCertificacionesByUsuario(dto.id).first()
+
+        actualesCertificaciones.forEach {
+            certificacionDao.delete(it)
+        }
+
+        dto.certificaciones.forEachIndexed { index, cert ->
+            certificacionDao.insert(
+                CertificacionEntity(
+                    id = "${dto.id}_cert_$index",
+                    idUsuario = dto.id,
+                    nombre = cert.nombre,
+                    institucion = cert.institucion,
+                    fechaObtencion = cert.fechaObtencion,
+
+                )
+            )
+        }
+    }
 }

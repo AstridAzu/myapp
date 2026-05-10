@@ -2,14 +2,17 @@ package com.example.myapp.ui.metafit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,7 +25,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.data.local.dao.EjercicioConDetalle
 import com.example.myapp.ui.navigation.Routes
@@ -300,6 +309,52 @@ private fun EjercicioSeguimientoPanel(
     onSerieCheck: (numeroSerie: Int, checked: Boolean) -> Unit
 ) {
     val borderColor = if (ejercicioCompleto) Color(0xFF43A047) else Color.Transparent
+    var showFullImage by remember { mutableStateOf(false) }
+
+    // Diálogo de imagen a pantalla completa
+    if (showFullImage && !ejercicio.imageUrl.isNullOrBlank()) {
+        val context = LocalContext.current
+        Dialog(
+            onDismissRequest = { showFullImage = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { showFullImage = false },
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(ejercicio.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Imagen de ${ejercicio.nombre}",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                )
+                // Botón cerrar flotante
+                IconButton(
+                    onClick = { showFullImage = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .size(44.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Cerrar imagen",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -315,6 +370,26 @@ private fun EjercicioSeguimientoPanel(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Imagen del ejercicio (si tiene) — clickeable para ver en pantalla completa
+            if (!ejercicio.imageUrl.isNullOrBlank()) {
+                val context = LocalContext.current
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(ejercicio.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Imagen de ${ejercicio.nombre}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF5F5F5))
+                        .clickable { showFullImage = true }
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+
             // Cabecera ejercicio
             Row(
                 verticalAlignment = Alignment.CenterVertically,

@@ -57,7 +57,8 @@ import com.example.myapp.data.local.entities.RutinaEntity
 import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import com.example.myapp.ui.rutinas.colorHexToColor
-import com.example.myapp.ui.rutinas.iconoKeyToVector
+import com.example.myapp.ui.rutinas.IconoIcon
+import com.example.myapp.ui.rutinas.iconoKeyToFuente
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -593,7 +594,7 @@ private fun RutinaSeleccionCard(
     onClick: () -> Unit
 ) {
     val accentColor = colorHexToColor(rutina.colorHex)
-    val icono = iconoKeyToVector(rutina.icono)
+    val icono = iconoKeyToFuente(rutina.icono)
 
     Card(
         onClick = onClick,
@@ -647,8 +648,8 @@ private fun RutinaSeleccionCard(
                 }
             }
 
-            Icon(
-                imageVector = icono,
+            IconoIcon(
+                fuente = icono,
                 contentDescription = null,
                 tint = accentColor.copy(alpha = 0.8f),
                 modifier = Modifier

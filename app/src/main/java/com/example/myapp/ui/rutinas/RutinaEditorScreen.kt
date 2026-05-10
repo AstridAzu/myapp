@@ -230,8 +230,8 @@ fun RutinaEditorScreen(
                                 .clickable { viewModel.onIconoChange(opcion.key) }
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                                Icon(
-                                    imageVector = opcion.vector,
+                                IconoIcon(
+                                    fuente = opcion.fuente,
                                     contentDescription = opcion.label,
                                     tint = if (seleccionado) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(26.dp)

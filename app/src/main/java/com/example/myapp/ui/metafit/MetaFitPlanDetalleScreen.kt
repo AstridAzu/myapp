@@ -38,7 +38,8 @@ import androidx.navigation.NavController
 import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import com.example.myapp.ui.rutinas.colorHexToColor
-import com.example.myapp.ui.rutinas.iconoKeyToVector
+import com.example.myapp.ui.rutinas.IconoIcon
+import com.example.myapp.ui.rutinas.iconoKeyToFuente
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -220,7 +221,7 @@ private fun RutinaProgramadaCard(
     onIniciar: () -> Unit
 ) {
     val accent = colorHexToColor(rutina.colorHex)
-    val icono = iconoKeyToVector(rutina.icono)
+    val icono = iconoKeyToFuente(rutina.icono)
     val fechaTexto = remember(rutina.fechaProgramada) {
         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(rutina.fechaProgramada))
     }
@@ -263,7 +264,7 @@ private fun RutinaProgramadaCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(icono, contentDescription = null, tint = accent)
+                    IconoIcon(icono, contentDescription = null, tint = accent)
                     Text(rutina.nombre, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                 }
 

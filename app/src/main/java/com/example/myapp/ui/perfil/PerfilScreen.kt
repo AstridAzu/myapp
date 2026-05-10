@@ -1,6 +1,10 @@
 package com.example.myapp.ui.perfil
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,14 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -44,19 +51,33 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import android.provider.OpenableColumns
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import com.example.myapp.ui.components.AppTopBar
 import com.example.myapp.ui.navigation.Routes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Calendar
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,16 +94,125 @@ fun PerfilScreen(
     val isSaving by viewModel.isSaving.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
+    val isUploadingPhoto by viewModel.isUploadingPhoto.collectAsState()
+    val photoUploadError by viewModel.photoUploadError.collectAsState()
+    
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val httpClient = remember { OkHttpClient() }
+    
     var isEditing by remember { mutableStateOf(false) }
     var showAddObjetivo by remember { mutableStateOf(false) }
     var especialidadToDelete by remember { mutableStateOf<com.example.myapp.data.local.entities.EspecialidadEntity?>(null) }
+    
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { imageUri ->
+            if (imageUri != null) {
+                scope.launch(Dispatchers.Default) {
+                    try {
+                        android.util.Log.d("PerfilScreen", "📷 Imagen seleccionada: $imageUri")
+
+                        var fileName = "image.jpg"
+                        val contentResolver = context.contentResolver
+                        
+                        contentResolver.query(imageUri, null, null, null, null)?.use { cursor ->
+                            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                            if (cursor.moveToFirst()) {
+                                fileName = cursor.getString(nameIndex)
+                            }
+                        }
+
+                        val extension = fileName.substringAfterLast(".", "jpg").lowercase()
+                        val contentType = when (extension) {
+                            "jpg", "jpeg" -> "image/jpeg"
+                            "png" -> "image/png"
+                            "gif" -> "image/gif"
+                            "webp" -> "image/webp"
+                            else -> "image/jpeg"
+                        }
+
+                        android.util.Log.d("PerfilScreen", "📖 Leyendo imagen: $fileName")
+
+                        // Leer la imagen primero para obtener el tamaño REAL
+                        val imageBytes = contentResolver.openInputStream(imageUri)?.use { inputStream ->
+                            inputStream.readBytes()
+                        } ?: run {
+                            android.util.Log.e("PerfilScreen", "❌ No se pudo leer la imagen")
+                            return@launch
+                        }
+
+                        val actualFileSize = imageBytes.size.toLong()
+                        android.util.Log.d("PerfilScreen", "📦 Imagen leída: $fileName, size=$actualFileSize bytes, type=$contentType")
+
+                        // Solicitar URL presignada con el tamaño REAL
+                        val presignedResult = viewModel.userImagesRemoteDataSource.getPresignedUrl(
+                            userId =  usuario?.id ?: return@launch,
+                            fileName = fileName,
+                            contentType = contentType,
+                            sizeBytes = actualFileSize
+                        )
+
+                        presignedResult.onSuccess { result ->
+                            android.util.Log.d("PerfilScreen", "✓ URL presignada obtenida: ${result.uploadUrl}")
+
+                            val requestBody = imageBytes.toRequestBody(contentType.toMediaType())
+                            val request = Request.Builder()
+                                .url(result.uploadUrl)
+                                .put(requestBody)
+                                .build()
+
+                            try {
+                                val response = httpClient.newCall(request).execute()
+                                android.util.Log.d("PerfilScreen", "📤 Response status: ${response.code}")
+
+                                if (response.isSuccessful) {
+                                    val objectKey = result.objectKey
+                                    // Construir publicUrl con el dominio correcto del R2
+                                    val publicUrl = "https://pub-f6cf0afe49be47a483db84777bc5be56.r2.dev/$objectKey"
+
+                                    android.util.Log.d("PerfilScreen", "📝 objectKey: $objectKey, publicUrl: $publicUrl")
+
+                                    scope.launch(Dispatchers.Main) {
+                                        viewModel.completePhotoUpload(objectKey, publicUrl)
+                                    }
+                                } else {
+                                    val errorBody = response.body?.string() ?: "Error desconocido"
+                                    android.util.Log.e("PerfilScreen", "❌ Upload fallido: ${response.code} - $errorBody")
+                                    scope.launch(Dispatchers.Main) {
+                                        viewModel.setPhotoUploadError("Error subiendo imagen: ${response.code}")
+                                    }
+                                }
+                                response.close()
+                            } catch (e: Exception) {
+                                android.util.Log.e("PerfilScreen", "❌ Exception durante upload: ${e.message}", e)
+                                scope.launch(Dispatchers.Main) {
+                                    viewModel.setPhotoUploadError(e.message ?: "Error en la conexión")
+                                }
+                            }
+                        }.onFailure { error ->
+                            android.util.Log.e("PerfilScreen", "❌ Error obteniendo presigned URL: ${error.message}")
+                            scope.launch(Dispatchers.Main) {
+                                viewModel.setPhotoUploadError(error.message ?: "Error obteniendo URL de carga")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PerfilScreen", "❌ Error en flujo de upload: ${e.message}", e)
+                        scope.launch(Dispatchers.Main) {
+                            viewModel.setPhotoUploadError(e.message ?: "Error procesando imagen")
+                        }
+                    }
+                }
+            }
+        }
+    )
     var certificacionToDelete by remember { mutableStateOf<com.example.myapp.data.local.entities.CertificacionEntity?>(null) }
     var objetivoToDelete by remember { mutableStateOf<com.example.myapp.data.local.entities.ObjetivoEntity?>(null) }
     var objetivoToEdit by remember { mutableStateOf<com.example.myapp.data.local.entities.ObjetivoEntity?>(null) }
 
-    LaunchedEffect(errorMessage, successMessage) {
-        val message = errorMessage ?: successMessage
+    LaunchedEffect(errorMessage, successMessage, photoUploadError) {
+        val message = errorMessage ?: successMessage ?: photoUploadError
         if (!message.isNullOrBlank()) {
             snackbarHostState.showSnackbar(message)
             viewModel.clearMessages()
@@ -223,6 +353,120 @@ fun PerfilScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Foto de Perfil", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Mostrar imagen o placeholder
+                        if (!currentUser.fotoUrl.isNullOrBlank()) {
+                            android.util.Log.d("PerfilScreen", "🖼️ Intentando cargar imagen: ${currentUser.fotoUrl}")
+                            Box(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .background(
+                                        color = Color.Gray.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    )
+                                    .clip(CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(currentUser.fotoUrl)
+                                        .crossfade(durationMillis = 500)
+                                        .build(),
+                                    contentDescription = "Foto de perfil",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    onLoading = {
+                                        android.util.Log.d("PerfilScreen", "⏳ Coil cargando: ${currentUser.fotoUrl}")
+                                    },
+                                    onSuccess = { _ ->
+                                        android.util.Log.d("PerfilScreen", "✅ Imagen cargada exitosamente")
+                                    },
+                                    onError = { state ->
+                                        android.util.Log.e("PerfilScreen", "❌ Error en Coil: ${state.result.throwable?.message}")
+                                        android.util.Log.e("PerfilScreen", "URL: ${currentUser.fotoUrl}")
+                                    }
+                                )
+                            }
+                        } else {
+                            android.util.Log.d("PerfilScreen", "⚪ Sin URL de foto")
+                            Column(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .background(
+                                        color = Color.Gray.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.ImageNotSupported,
+                                    contentDescription = "Foto de perfil",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        if (!currentUser.fotoUrl.isNullOrBlank()) {
+                            Text(
+                                "Foto actualizada",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = {
+                                    imagePickerLauncher.launch("image/*")
+                                },
+                                enabled = !isUploadingPhoto
+                            ) {
+                                Text(if (isUploadingPhoto) "Subiendo..." else "Cambiar foto")
+                            }
+
+                            if (!currentUser.fotoUrl.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                OutlinedButton(
+                                    onClick = { viewModel.deletePhoto() },
+                                    enabled = !isUploadingPhoto
+                                ) {
+                                    Text("Eliminar")
+                                }
+                            }
+                        }
+
+                        if (isUploadingPhoto) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
+            }
+
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -464,6 +708,11 @@ private fun CertificacionItem(
         }
     }
 }
+
+data class UploadResponse(
+    val objectKey: String? = null,
+    val publicUrl: String? = null
+)
 
 @Composable
 private fun NombreDialog(

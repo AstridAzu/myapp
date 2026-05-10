@@ -144,7 +144,7 @@ class BaseRoutineLinksSyncManager(
                     )
                 }
 
-                Log.d(TAG, "Fallback generated ${fallbackEntities.size} routine-exercise links")
+                // Log.d(TAG, "Fallback generated ${fallbackEntities.size} routine-exercise links") // Eliminado
                 fallbackEntities
             }
 
@@ -153,16 +153,16 @@ class BaseRoutineLinksSyncManager(
                     // Solo reemplazar links cuando ya tenemos el nuevo set listo.
                     val deletedLinkCount = rutinaDao.deleteAllBaseRoutineLinks()
                     if (deletedLinkCount > 0) {
-                        Log.d(TAG, "Cleaned $deletedLinkCount old routine-exercise links")
+                        // Log.d(TAG, "Cleaned $deletedLinkCount old routine-exercise links") // Eliminado
                     }
                     rutinaDao.upsertRutinaEjercicios(finalEntities)
                 }
-                Log.d(TAG, "Synced ${finalEntities.size} routine-exercise links")
+                // Log.d(TAG, "Synced ${finalEntities.size} routine-exercise links") // Eliminado
             }
             
             // Validar
             val finalCount = rutinaDao.countBaseRoutineExerciseLinks()
-            Log.d(TAG, "Base routine links sync complete. Final count: $finalCount")
+            // Log.d(TAG, "Base routine links sync complete. Final count: $finalCount") // Eliminado
             
             if (finalCount < EXPECTED_COUNT) {
                 Log.w(TAG, "WARNING: Expected $EXPECTED_COUNT base routine links but got $finalCount")

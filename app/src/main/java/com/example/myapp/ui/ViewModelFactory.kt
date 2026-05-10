@@ -3,7 +3,11 @@ package com.example.myapp.ui
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.myapp.BuildConfig
 import com.example.myapp.data.database.DatabaseBuilder
+import com.example.myapp.data.local.dao.UsuarioDao
+import com.example.myapp.data.remote.ApiClientProvider
+import com.example.myapp.data.remote.ApiType
 import com.example.myapp.data.repository.*
 import com.example.myapp.domain.use_cases.*
 import com.example.myapp.ui.auth.login.LoginViewModel
@@ -31,6 +35,9 @@ import com.example.myapp.ui.trainers.TrainersViewModel
 import com.example.myapp.ui.seguimiento.SeguimientoHubViewModel
 import com.example.myapp.ui.seguimiento.SeguimientoUsuarioPlanesViewModel
 import com.example.myapp.utils.SessionManager
+import com.example.myapp.data.remote.TrainersRemoteDataSource
+import com.example.myapp.data.remote.UserImagesRemoteDataSource
+import com.example.myapp.data.remote.sync.SyncApi
 
 @Suppress("UNCHECKED_CAST")
 class ViewModelFactory(
@@ -47,10 +54,28 @@ class ViewModelFactory(
     
     private val authRepository = AuthRepository(database, sessionManager)
     private val entrenadorRepository = EntrenadorRepository(database, sessionManager)
+
+    private val usuarioRepository = UsuarioRepository(database.usuarioDao())
     private val perfilRepository = PerfilRepository(database)
     private val rutinaRepository = RutinaRepository(database, sessionManager)
     private val planRepository = PlanRepository(database)
     private val seguimientoRepository = com.example.myapp.data.repository.SeguimientoRepository(database, planRepository)
+
+    private fun createSyncApi(): SyncApi {
+        return ApiClientProvider.create(
+            type = ApiType.SYNC,
+            baseUrl = com.example.myapp.BuildConfig.SYNC_API_BASE_URL.trim(),
+            sessionManager = sessionManager
+        )
+    }
+
+    private fun createImageApi(): SyncApi {
+        return ApiClientProvider.create(
+            type = ApiType.IMAGE,
+            baseUrl = BuildConfig.IMAGE_API_BASE_URL.trim(),
+            sessionManager = sessionManager
+        )
+    }
 
     private fun resolveSessionUserIdString(): String {
         return sessionManager.getUserIdString().trim()
@@ -127,9 +152,18 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(PlanAsignacionesViewModel::class.java) ->
                 PlanAsignacionesViewModel(entrenadorRepository, planRepository, idCreador = resolvedUserIdString, idPlan = resolvedExtraIdString) as T
             modelClass.isAssignableFrom(PerfilViewModel::class.java) ->
-                PerfilViewModel(perfilRepository, userId = resolvedUserIdString) as T
+                PerfilViewModel(
+                    perfilRepository = perfilRepository,
+                    userImagesRemoteDataSource = UserImagesRemoteDataSource(createImageApi()),
+                    userId = resolvedUserIdString
+                ) as T
             modelClass.isAssignableFrom(TrainersViewModel::class.java) ->
-                TrainersViewModel(entrenadorRepository, alumnoId = resolvedUserIdString) as T
+                TrainersViewModel(
+                    trainersRemoteDataSource = TrainersRemoteDataSource(createSyncApi()),
+                    entrenadorRepository = entrenadorRepository,
+                    usuarioRepository = usuarioRepository,
+                    alumnoId = resolvedUserIdString
+                ) as T
             modelClass.isAssignableFrom(TrainerDetalleViewModel::class.java) ->
                 TrainerDetalleViewModel(entrenadorRepository, trainerId = resolvedExtraIdString, alumnoId = resolvedUserIdString) as T
             modelClass.isAssignableFrom(SeguimientoHubViewModel::class.java) ->

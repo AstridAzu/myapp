@@ -7,6 +7,7 @@ import com.example.myapp.data.local.entities.EspecialidadEntity
 import com.example.myapp.data.local.entities.ObjetivoEntity
 import com.example.myapp.data.local.entities.UsuarioEntity
 import com.example.myapp.data.repository.PerfilRepository
+import com.example.myapp.data.remote.UserImagesRemoteDataSource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class PerfilViewModel(
     private val perfilRepository: PerfilRepository,
-    private val userId: String
+    internal val userImagesRemoteDataSource: UserImagesRemoteDataSource,
+    internal val userId: String
 ) : ViewModel() {
 
     private val _usuario = MutableStateFlow<UsuarioEntity?>(null)
@@ -44,6 +46,12 @@ class PerfilViewModel(
 
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+
+    private val _isUploadingPhoto = MutableStateFlow(false)
+    val isUploadingPhoto: StateFlow<Boolean> = _isUploadingPhoto.asStateFlow()
+
+    private val _photoUploadError = MutableStateFlow<String?>(null)
+    val photoUploadError: StateFlow<String?> = _photoUploadError.asStateFlow()
 
     private var relatedDataJob: Job? = null
 
@@ -106,6 +114,84 @@ class PerfilViewModel(
     fun clearMessages() {
         _errorMessage.value = null
         _successMessage.value = null
+        _photoUploadError.value = null
+    }
+
+    fun setPhotoUploadError(message: String?) {
+        _photoUploadError.value = message
+    }
+
+    fun startPhotoUpload(fileName: String, fileSize: Long, contentType: String) {
+        viewModelScope.launch {
+            _isUploadingPhoto.value = true
+            _photoUploadError.value = null
+
+            try {
+                android.util.Log.d("PerfilViewModel", "📷 Obteniendo URL presignada para: $fileName")
+                
+                userImagesRemoteDataSource.getPresignedUrl(
+                    userId = userId,
+                    fileName = fileName,
+                    contentType = contentType,
+                    sizeBytes = fileSize
+                ).onSuccess { presignedResult ->
+                    android.util.Log.d("PerfilViewModel", "✓ URL presignada obtenida: ${presignedResult.uploadUrl}")
+                    _successMessage.value = "URL presignada obtenida. Subiendo imagen..."
+                }.onFailure { error ->
+                    android.util.Log.e("PerfilViewModel", "❌ Error obteniendo presigned URL: ${error.message}", error)
+                    _photoUploadError.value = error.message ?: "Error obteniendo URL de carga"
+                }
+            } finally {
+                _isUploadingPhoto.value = false
+            }
+        }
+    }
+
+    fun completePhotoUpload(objectKey: String, publicUrl: String) {
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("PerfilViewModel", "💾 Guardando foto URL en perfil: $publicUrl")
+                perfilRepository.updateFotoUrl(userId, publicUrl)
+                _successMessage.value = "Foto de perfil actualizada"
+                cargarPerfil() // Recargar para obtener datos actualizados
+            } catch (e: Exception) {
+                android.util.Log.e("PerfilViewModel", "❌ Error guardando foto: ${e.message}", e)
+                _photoUploadError.value = e.message ?: "Error guardando foto"
+            }
+        }
+    }
+
+    fun deletePhoto() {
+        viewModelScope.launch {
+            _isUploadingPhoto.value = true
+            _photoUploadError.value = null
+            
+            try {
+                val usuario = _usuario.value ?: return@launch
+                usuario.fotoUrl?.let { currentFotoUrl ->
+                    // Extraer objectKey de la URL
+                    val objectKey = currentFotoUrl.substringAfterLast("/")
+                    
+                    android.util.Log.d("PerfilViewModel", "🗑️ Eliminando foto con objectKey: $objectKey")
+                    
+                    userImagesRemoteDataSource.deleteUserImage(userId, objectKey)
+                        .onSuccess {
+                            android.util.Log.d("PerfilViewModel", "✓ Foto eliminada del servidor")
+                            perfilRepository.deleteFotoUrl(userId)
+                            _successMessage.value = "Foto de perfil eliminada"
+                            cargarPerfil() // Recargar para obtener datos actualizados
+                        }
+                        .onFailure { error ->
+                            android.util.Log.e("PerfilViewModel", "❌ Error eliminando foto: ${error.message}", error)
+                            _photoUploadError.value = error.message ?: "Error eliminando foto"
+                        }
+                } ?: run {
+                    _photoUploadError.value = "No hay foto para eliminar"
+                }
+            } finally {
+                _isUploadingPhoto.value = false
+            }
+        }
     }
 
     fun guardarNombre() {

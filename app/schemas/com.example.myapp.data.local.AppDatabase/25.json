@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 25,
-    "identityHash": "30542ce33ddd61dad01d2e0194171939",
+    "identityHash": "f41aac0c30015bcd1566c8f895cd0321",
     "entities": [
       {
         "tableName": "usuarios",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `rol` TEXT NOT NULL, `activo` INTEGER NOT NULL, `fechaRegistro` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, `deletedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `rol` TEXT NOT NULL, `activo` INTEGER NOT NULL, `fotoUrl` TEXT, `fechaRegistro` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, `deletedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -31,6 +31,12 @@
             "columnName": "activo",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "fotoUrl",
+            "columnName": "fotoUrl",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "fechaRegistro",
@@ -2090,7 +2096,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '30542ce33ddd61dad01d2e0194171939')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f41aac0c30015bcd1566c8f895cd0321')"
     ]
   }
 }
